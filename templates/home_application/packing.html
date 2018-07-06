@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html>
+<head >
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title></title>
+    <!-- 若您需要使用Kendo UI Professional，请联系版权人获得合法的授权或许可。 -->
+    
+    <!-- Bootstrap css -->
+    <link href="https://magicbox.bkclouds.cc/static_api/v3/assets/bootstrap-3.3.4/css/bootstrap.min.css" rel="stylesheet">
+    <!-- kendo ui css -->
+    <link href="https://magicbox.bkclouds.cc/static_api/v3/assets/kendoui-2015.2.624/styles/kendo.common.min.css" rel="stylesheet">
+    <link href="https://magicbox.bkclouds.cc/static_api/v3/assets/kendoui-2015.2.624/styles/kendo.default.min.css" rel="stylesheet">
+    <!-- font-awesome -->
+    <link href="https://magicbox.bkclouds.cc/static_api/v3/assets/fontawesome/css/font-awesome.css" rel="stylesheet">
+    <!--蓝鲸提供的公用样式库 -->
+    <link href="https://magicbox.bkclouds.cc/static_api/v3/bk/css/bk.css" rel="stylesheet">
+    <!-- 如果要使用Bootstrap的js插件，必须先调入jQuery -->
+    <script src="https://magicbox.bkclouds.cc/static_api/v3/assets/js/jquery-1.10.2.min.js"></script>
+    <!-- 包括所有bootstrap的js插件或者可以根据需要使用的js插件调用　-->
+    <script src="https://magicbox.bkclouds.cc/static_api/v3/assets/bootstrap-3.3.4/js/bootstrap.min.js"></script>
+    <!-- 包括所有kendoui的js插件或者可以根据需要使用的js插件调用　-->
+    <script src="https://magicbox.bkclouds.cc/static_api/v3/assets/kendoui-2015.2.624/js/kendo.all.min.js"></script>
+    <script src="https://magicbox.bkclouds.cc/static_api/v3/bk/js/bk.js"></script>
+    <!-- 以下两个插件用于在IE8以及以下版本浏览器支持HTML5元素和媒体查询，如果不需要用可以移除 -->
+    <!--[if lt IE 9]>
+    <script src="https://magicbox.bkclouds.cc/static_api/v3/assets/js/html5shiv.min.js"></script>
+    <script src="https://magicbox.bkclouds.cc/static_api/v3/assets/js/respond.min.js"></script>
+    <![endif]-->
+    <!-- 数据埋点统计 -->
+    <script src="https://magicbox.bkclouds.cc/static_api/analysis.js"></script>
+    <style>
+        .box{
+
+            margin: 50px;
+        }
+    </style>
+</head>
+<body>
+<div class = "box">
+    <div style="display: inline-block; ">
+        <form  action="/upload"  method="POST" enctype ="multipart/form-data">
+        <input style="display: inline-block" type="file" name="job_xlsx">
+        <input style="display: inline-block" type="submit" value="提交">
+        </form>
+    </div>
+    <div style="display: inline-block; margin: 0px 25px 0px 25px"></div>
+    <div style="display: inline-block">
+        <form  action="/upload"  method="POST" enctype ="multipart/form-data">
+        <input type="text" name="job_tag" placeholder="请输入TAG">
+        <input type="submit" value="提交">
+        </form>
+    </div>
+
+
+</div>
+
+
+
+<div class="box">
+    <div style="text-align: center">
+        <a  href="/history" style="font-size: 18px;" >构建历史</a>
+    </div>
+    <table class="table table-bordered table7_demo" style="margin-top: 10px">
+        <thead>
+            <tr>
+                <th>序号</th>
+                <th>名称</th>
+                <th>TAG</th>
+                <th>日期</th>
+                <th>详情</th>
+                <th>状态</th>
+                <th>操作
+                    <div style="display: inline-block;margin-left: 5px" id = "exec" class="btn btn-xs btn-success" title="构建" >
+                        <i style="height: 22px;" class="glyphicon " onclick="build_by_list()">一键构建</i>
+                    </div>
+                </th>
+            </tr>
+        </thead>
+        <tbody>
+            %for job in jobs:
+
+            <tr>
+                <td>${ job['num'] }</td>
+                <td>${ job['name'] }</td>
+                <td>${ job['tag'] }</td>
+                <td>${ job['date'] }</td>
+                <td>
+                    %if job.get('detail'):
+                    <a href=" ${ job.get('detail') } "> 详情 </a>
+                    %endif
+                </td>
+                <td id="${ job['num'] }">
+                    % if job['status'] == 'FAILURE':
+                    <span  class="label label-danger">${ job['status'] }</span>
+
+                    % elif job['status'] == 'SUCCESS':
+                    <span  class="label label-success">${ job['status'] }</span>
+
+                    % elif job['status'] == 'WAIT':
+                    <span  class="label label-default">${ job['status'] }</span>
+
+                    % elif job['status'] == 'UNSTABLE':
+                    <span  class="label label-warning">${ job['status'] }</span>
+
+                    % elif job['status'] == 'BUILDING':
+                    <span  class="label label-info">${ job['status'] }</span>
+
+                    % endif
+
+                </td>
+                <td>
+                    <button id = "exec" class="btn btn-xs btn-success" title="构建" onclick="build(this)">
+                        <i class="glyphicon glyphicon-ok"></i>
+                    </button>
+                    <button id = "edit" class="btn btn-xs btn-warning" title="编辑" onclick="edit(this)">
+                        <i class="glyphicon glyphicon-edit"></i>
+                    </button>
+                    <button id="del" class="btn btn-xs btn-danger" title="删除" onclick="del(this)">
+                        <i class="glyphicon glyphicon-remove"></i>
+                    </button>
+                </td>
+            </tr>
+            %endfor
+
+        </tbody>
+    </table>
+</div>
+
+</body>
+<script>
+    function build(th) {
+        // 获取 job_name
+        var job_name = $(th).parent('td').siblings().eq(1).text()
+        $.post('/build', {"job_name": job_name}, function (data) {
+            get_status()
+            alert(data.msg)
+
+        })
+    }
+
+    function build_by_list() {
+        $.post('/build', function (data) {
+            alert(data.msg)
+        })
+    }
+
+    function del(th) {
+        var job_name = $(th).parent('td').siblings().eq(1).text();
+
+        $.post('/del', {"job_name": job_name}, function (data) {
+            if (data.code == '0'){
+                // 删除成功
+                if(confirm("确定删除数据")){
+                    $(th).parents('tr').eq(0).remove()
+                    alert(data.msg)
+
+                }else{
+
+                }
+            }
+        })
+    }
+
+
+    function edit(th) {
+        var old_tag = $(th).parent().siblings().eq(2).html()
+        var new_tag = prompt("请修改tag号", old_tag);
+        if (new_tag != null){
+            $.post('/edit', {'tag': new_tag}, function (data) {
+                if (data.code == 0){
+                    $(th).parent().siblings().eq(2).html(new_tag);
+                    alert(data.msg)
+                }else {
+                    alert(data.msg)
+                }
+            })
+
+        }else{
+
+    }
+    }
+    function get_status() {
+            ##  window.location.reload();
+             $.get('/status', function (data) {
+                  console.log(data['jobs']);
+                 for (var i = 0 ;i < data['jobs'].length; i++){
+                     var job = data['jobs'][i];
+                      console.log(data['jobs'][i]['status']);
+                      if (job['status'] == 'FAILURE'){
+                            $(job['id']).html('<span  class="label label-danger">' + data['jobs'][i]['status'] + "</span>")
+                            $(job['id']).prev().html('<a href="'+ job["detail"] + '" target="view_window"> 详情 </a>').prev().html(job['date'])
+                      }if (job['status'] == 'SUCCESS'){
+                            $(job['id']).html('<span  class="label label-success">' + data['jobs'][i]['status'] + "</span>")
+
+                            $(job['id']).prev().html('<a href="'+ job["detail"] + '" target="view_window"> 详情 </a>').prev().html(job['date'])
+                      }if (job['status'] == 'WAIT'){
+                            $(job['id']).html( '<span  class="label label-default">' + data['jobs'][i]['status'] + "</span>")
+                            ##  $(job['id']).prev().html('<a href="'+ job["detail"] + '"> 详情 </a>').prev().html(job['date'])
+
+                      }if (job['status'] == 'UNSTABLE') {
+                         $(job['id']).html('<span  class="label label-warning">' + data['jobs'][i]['status'] + "</span>")
+                         $(job['id']).prev().html('<a href="'+ job["detail"] + '" target="view_window"> 详情 </a>').prev().html(job['date'])
+
+                      }if (job['status'] == 'BUILDING'){
+                            $(job['id']).html('<span  class="label label-info">' + data['jobs'][i]['status'] + "</span>")
+                            $(job['id']).prev().html('<a href="'+ job["detail"] + '" target="view_window"> 详情 </a>').prev().html(job['date'])
+                      }
+
+                }
+            })
+        }
+
+    $(function () {
+        setInterval(get_status, 5000);
+
+    })
+    
+</script>
+</html>

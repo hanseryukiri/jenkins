@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title></title>
+    <!-- 若您需要使用Kendo UI Professional，请联系版权人获得合法的授权或许可。 -->
+    
+    <!-- Bootstrap css -->
+    <link href="https://magicbox.bkclouds.cc/static_api/v3/assets/bootstrap-3.3.4/css/bootstrap.min.css" rel="stylesheet">
+    <!-- kendo ui css -->
+    <link href="https://magicbox.bkclouds.cc/static_api/v3/assets/kendoui-2015.2.624/styles/kendo.common.min.css" rel="stylesheet">
+    <link href="https://magicbox.bkclouds.cc/static_api/v3/assets/kendoui-2015.2.624/styles/kendo.default.min.css" rel="stylesheet">
+    <!-- font-awesome -->
+    <link href="https://magicbox.bkclouds.cc/static_api/v3/assets/fontawesome/css/font-awesome.css" rel="stylesheet">
+    <!--蓝鲸提供的公用样式库 -->
+    <link href="https://magicbox.bkclouds.cc/static_api/v3/bk/css/bk.css" rel="stylesheet">
+    <!-- 如果要使用Bootstrap的js插件，必须先调入jQuery -->
+    <script src="https://magicbox.bkclouds.cc/static_api/v3/assets/js/jquery-1.10.2.min.js"></script>
+    <!-- 包括所有bootstrap的js插件或者可以根据需要使用的js插件调用　-->
+    <script src="https://magicbox.bkclouds.cc/static_api/v3/assets/bootstrap-3.3.4/js/bootstrap.min.js"></script>
+    <!-- 包括所有kendoui的js插件或者可以根据需要使用的js插件调用　-->
+    <script src="https://magicbox.bkclouds.cc/static_api/v3/assets/kendoui-2015.2.624/js/kendo.all.min.js"></script>
+    <script src="https://magicbox.bkclouds.cc/static_api/v3/bk/js/bk.js"></script>
+    <!-- 以下两个插件用于在IE8以及以下版本浏览器支持HTML5元素和媒体查询，如果不需要用可以移除 -->
+    <!--[if lt IE 9]>
+    <script src="https://magicbox.bkclouds.cc/static_api/v3/assets/js/html5shiv.min.js"></script>
+    <script src="https://magicbox.bkclouds.cc/static_api/v3/assets/js/respond.min.js"></script>
+    <![endif]-->
+    <!-- 数据埋点统计 -->
+    <script src="https://magicbox.bkclouds.cc/static_api/analysis.js"></script>
+    <style>
+        .box{
+
+            margin: 50px;
+        }
+    </style>
+</head>
+<body>
+<div class = "box">
+    <form  action="/upload"  method="POST" enctype ="multipart/form-data">
+    <input type="file" name="job_xlsx">
+    <input type="submit" value="提交">
+    </form>
+    <form  action="/upload"  method="POST" enctype ="multipart/form-data">
+    <input type="text" name="job_tag" placeholder="请输入TAG">
+    <input type="text" name="">
+    <input type="submit" value="提交">
+    </form>
+
+</div>
+<div class="box">
+    <table class="table table-bordered table7_demo">
+        <thead>
+            <tr>
+                <th>序号</th>
+                <th>名称</th>
+                <th>TAG</th>
+                <th>日期</th>
+                <th>详情</th>
+                <th>状态</th>
+                <th>操作</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>1</td>
+                <td>Ravi Kumar</td>
+                <td>India</td>
+                <td>23/12/2012</td>
+                <td>Paid</td>
+                <td>
+                    <span class="label label-info">Active</span>
+                </td>
+                <td>
+                    <button class="btn btn-xs btn-success" title="激活">
+                        <i class="glyphicon glyphicon-ok"></i>
+                    </button>
+                    <button class="btn btn-xs btn-warning" title="编辑">
+                        <i class="glyphicon glyphicon-edit"></i>
+                    </button>
+                    <button class="btn btn-xs btn-danger" title="删除">
+                        <i class="glyphicon glyphicon-remove"></i>
+                    </button>
+                </td>
+            </tr>
+            <tr>
+                <td>2</td>
+                <td>Ravi Kumar</td>
+                <td>India</td>
+                <td>23/12/2012</td>
+                <td>Paid</td>
+                <td>
+                    <span class="label label-danger">Banned</span>
+                </td>
+                <td>
+                    <button class="btn btn-xs btn-inverse" title="激活">
+                        <i class="glyphicon glyphicon-ok"></i>
+                    </button>
+                    <button class="btn btn-xs btn-inverse" title="编辑">
+                        <i class="glyphicon glyphicon-edit"></i>
+                    </button>
+                    <button class="btn btn-xs btn-inverse" title="删除">
+                        <i class="glyphicon glyphicon-remove"></i>
+                    </button>
+                </td>
+            </tr>
+            <tr>
+                <td>3</td>
+                <td>Ravi Kumar</td>
+                <td>India</td>
+                <td>23/12/2012</td>
+                <td>Paid</td>
+                <td>
+                    <span class="label label-success">Active</span>
+                </td>
+                <td>
+                    <button class="btn btn-xs btn-success" title="激活">
+                        <i class="glyphicon glyphicon-ok"></i>
+                    </button>
+                    <button class="btn btn-xs btn-warning" title="编辑">
+                        <i class="glyphicon glyphicon-edit"></i>
+                    </button>
+                    <button class="btn btn-xs btn-danger" title="删除">
+                        <i class="glyphicon glyphicon-remove"></i>
+                    </button>
+                </td>
+            </tr>
+            <tr>
+                <td>4</td>
+                <td>Ravi Kumar</td>
+                <td>India</td>
+                <td>23/12/2012</td>
+                <td>Paid</td>
+                <td>
+                    <span class="label label-success">Active</span>
+                </td>
+                <td>
+                    <button class="btn btn-xs btn-success" title="激活">
+                        <i class="glyphicon glyphicon-ok"></i>
+                    </button>
+                    <button class="btn btn-xs btn-warning" title="编辑">
+                        <i class="glyphicon glyphicon-edit"></i>
+                    </button>
+                    <button class="btn btn-xs btn-danger" title="删除">
+                        <i class="glyphicon glyphicon-remove"></i>
+                    </button>
+                </td>
+            </tr>
+            <tr>
+                <td>5</td>
+                <td>Ravi Kumar</td>
+                <td>India</td>
+                <td>23/12/2012</td>
+                <td>Paid</td>
+                <td>
+                    <span class="label label-danger">Banned</span>
+                </td>
+                <td>
+                    <button class="btn btn-xs btn-success" title="激活">
+                        <i class="glyphicon glyphicon-ok"></i>
+                    </button>
+                    <button class="btn btn-xs btn-warning" title="编辑">
+                        <i class="glyphicon glyphicon-edit"></i>
+                    </button>
+                    <button class="btn btn-xs btn-danger" title="删除">
+                        <i class="glyphicon glyphicon-remove"></i>
+                    </button>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+</body>
+</html>

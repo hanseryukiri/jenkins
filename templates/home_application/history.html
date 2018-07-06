@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title></title>
+    <!-- 若您需要使用Kendo UI Professional，请联系版权人获得合法的授权或许可。 -->
+    
+    <!-- Bootstrap css -->
+    <link href="https://magicbox.bkclouds.cc/static_api/v3/assets/bootstrap-3.3.4/css/bootstrap.min.css" rel="stylesheet">
+    <!-- kendo ui css -->
+    <link href="https://magicbox.bkclouds.cc/static_api/v3/assets/kendoui-2015.2.624/styles/kendo.common.min.css" rel="stylesheet">
+    <link href="https://magicbox.bkclouds.cc/static_api/v3/assets/kendoui-2015.2.624/styles/kendo.default.min.css" rel="stylesheet">
+    <!-- font-awesome -->
+    <link href="https://magicbox.bkclouds.cc/static_api/v3/assets/fontawesome/css/font-awesome.css" rel="stylesheet">
+    <!--蓝鲸提供的公用样式库 -->
+    <link href="https://magicbox.bkclouds.cc/static_api/v3/bk/css/bk.css" rel="stylesheet">
+    <!-- 如果要使用Bootstrap的js插件，必须先调入jQuery -->
+    <script src="https://magicbox.bkclouds.cc/static_api/v3/assets/js/jquery-1.10.2.min.js"></script>
+    <!-- 包括所有bootstrap的js插件或者可以根据需要使用的js插件调用　-->
+    <script src="https://magicbox.bkclouds.cc/static_api/v3/assets/bootstrap-3.3.4/js/bootstrap.min.js"></script>
+    <!-- 包括所有kendoui的js插件或者可以根据需要使用的js插件调用　-->
+    <script src="https://magicbox.bkclouds.cc/static_api/v3/assets/kendoui-2015.2.624/js/kendo.all.min.js"></script>
+    <script src="https://magicbox.bkclouds.cc/static_api/v3/bk/js/bk.js"></script>
+    <!-- 以下两个插件用于在IE8以及以下版本浏览器支持HTML5元素和媒体查询，如果不需要用可以移除 -->
+    <!--[if lt IE 9]>
+    <script src="https://magicbox.bkclouds.cc/static_api/v3/assets/js/html5shiv.min.js"></script>
+    <script src="https://magicbox.bkclouds.cc/static_api/v3/assets/js/respond.min.js"></script>
+    <![endif]-->
+    <!-- 数据埋点统计 -->
+    <script src="https://magicbox.bkclouds.cc/static_api/analysis.js"></script>
+    <style>
+        .box{
+
+            margin: 50px;
+        }
+    </style>
+</head>
+<body>
+<div class = "box">
+<div class="king-block king-block-bordered">
+  <div class="king-block-header king-gray-light">
+      <h3 class="king-block-title" style="display: inline-block">构建历史</h3>
+      <h3 class="king-block-title" style="display: inline-block">丨</h3>
+      <a href="/jobs" class="king-block-title" style="display: inline-block">返回构建</a>
+  </div>
+  <div class="king-block-content" style="text-align:center">
+      <table id="table2_demo1" class="table table-bordered table-hover">
+        <thead>
+          <tr>
+            <th>构建时间</th>
+            <th>任务名</th>
+            <th>TAG号</th>
+            <th>构建状态</th>
+            <th>详情</th>
+          </tr>
+        </thead>
+        <tbody>
+        %for job in jobs :
+        <tr>
+            <td>${ job['date'] }</td>
+            <td>${ job['name'] }</td>
+            <td>${ job['tag'] }</td>
+            <td>${ job['status'] }</td>
+            <td><a href="${ job['detail'] }" target="_blank"> 详情 </a></td>
+          </tr>
+        %endfor
+
+        </tbody>
+      </table>
+        <div id="paginator" style="display: inline-block" now_page="${now_page}" last_page="${last_page}">
+            <ul class="pagination" style="margin: 0">
+                <li>
+                <a href="javascript:;" aria-label="Previous">
+                    <span aria-hidden="true" onclick="frist()"><<</span>
+                </a>
+            </li>
+            <li>
+                <a href="javascript:;" aria-label="Previous" onclick="prev(this)">
+                    <span aria-hidden="true"><</span>
+                </a>
+            </li>
+                %for page in pages:
+                    <li><a href="javascript:;" onclick="page(this)" id="${page}" >${page}</a></li>
+                %endfor
+##              %if page_count > 5:
+##                  <%
+##                      last = page_count
+##                      second_last = page_count - 1
+##                  %>
+##                  <li><a href="javascript:;" >1</a></li>
+##                  <li><a href="javascript:;">2</a></li>
+##                 <li><a href="javascript:;">...</a></li>
+##                 <li><a href="javascript:;">${second_last}</a></li>
+##                 <li><a href="javascript:;">${last}</a></li>
+##              %elif page_count == 5:
+##                  <li><a href="javascript:;">1</a></li>
+##                  <li><a href="javascript:;">2</a></li>
+##                 <li><a href="javascript:;">3</a></li>
+##                 <li><a href="javascript:;">4</a></li>
+##                 <li><a href="javascript:;">5</a></li>
+##              %elif page_count < 5:
+##                  <%
+##                      page_list = [x for x in range(1, int(page_count + 1))]
+##                  %>
+##                  %for page in page_list:
+##                      <li><a href="javascript:;">${page}</a></li>
+##                  %endfor
+##              %endif
+            <li>
+                <a href="javascript:;" aria-label="Next" onclick="next()">
+                    <span aria-hidden="true">></span>
+                </a>
+            </li>
+            <li>
+                <a href="javascript:;" aria-label="Next">
+                    <span aria-hidden="true" onclick="last()">>></span>
+                </a>
+            </li>
+        </ul>
+        </div>
+    </div>
+  </div>
+</div>
+
+</body>
+<script type="text/javascript">
+  ##  $(function () {
+  ##
+  ##    //table2_demo1_js_start
+  ##    //表格(DataTables)-1，html数据源
+  ##    var language = {
+  ##      search: '搜索：',
+  ##      lengthMenu: "每页显示 _MENU_ 记录",
+  ##      zeroRecords: "没找到相应的数据！",
+  ##      info: "分页 _PAGE_ / _PAGES_",
+  ##      infoEmpty: "暂无数据！",
+  ##      infoFiltered: "(从 _MAX_ 条数据中搜索)",
+  ##      paginate: {
+  ##        first: '首页',
+  ##        last: '尾页',
+  ##        previous: '上一页',
+  ##        next: '下一页',
+  ##      }
+  ##    }
+  ##    $('#table2_demo1').dataTable({
+  ##      paging: true, //隐藏分页
+  ##      ordering: false, //关闭排序
+  ##      info: false, //隐藏左下角分页信息
+  ##      searching: false, //关闭搜索
+  ##      pageLength : 10, //每页显示几条数据
+  ##      lengthChange: false, //不允许用户改变表格每页显示的记录数
+  ##      language: language //汉化
+  ##    });
+  ##    //table2_demo1_js_end
+  ##  });
+
+   $(function () {
+       var now_page = $('#paginator').attr('now_page')
+       $('#' + now_page).css('color', 'black')
+   })
+
+   function prev(th) {
+       if ($('#paginator').attr('now_page') == 1){
+           alert('已经是第一页了')
+       }else{
+           var page = $('#paginator').attr('now_page') - 1
+           var url = page
+           location.href = url
+       }
+
+
+
+   }
+
+   function next(th) {
+       if ($('#paginator').attr('now_page') == $('#paginator').attr('last_page')){
+           alert('已经是最后一页了')
+       }else{
+           var page = parseInt($('#paginator').attr('now_page')) + 1
+           var url = page
+           location.href = url
+       }
+
+   }
+
+   function page(th) {
+       var page = $(th).html()
+       var url = page
+       location.href = url
+   }
+
+   function frist() {
+       location.href = '1'
+   }
+   
+   function last() {
+       var last_page = $('#paginator').attr('last_page')
+       location.href = last_page
+   }
+</script>
+</html>
