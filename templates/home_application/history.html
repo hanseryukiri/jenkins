@@ -62,7 +62,16 @@
             <td>${ job['date'] }</td>
             <td>${ job['name'] }</td>
             <td>${ job['tag'] }</td>
-            <td>${ job['status'] }</td>
+            %if job['status']  == 'FAILURE':
+                <td><span  class="label label-danger">${ job['status'] }</span></td>
+            %elif job['status']  == 'SUCCESS':
+                <td><span  class="label label-success">${ job['status'] }</span></td>
+            %elif job['status']  == 'UNSTABLE':
+                <td><span  class="label label-warning">${ job['status'] }</span></td>
+            %elif  job['status']  == 'ABORTED':
+                <td><span  class="label label-default">${ job['status'] }</span></td>
+            %endif
+
             <td><a href="${ job['detail'] }" target="_blank"> 详情 </a></td>
           </tr>
         %endfor

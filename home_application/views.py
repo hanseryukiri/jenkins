@@ -125,7 +125,7 @@ def handle_xlsx(job_xlsx):
     # 获取行数和列数
     nrows = table.nrows
     ncols = table.ncols
-    # 获取版本号这个单元格的坐标
+    # 获取"版本号"这个单元格的坐标
     x, y = get_x_y(table)
     # 获取所有版本号
     gitname_tag_list = []
@@ -136,8 +136,18 @@ def handle_xlsx(job_xlsx):
             tag = table.cell(x, y).value
             num = table.cell(x, y + 5).value
             # print(tag)
-
-            job = {'name': gitname_jobname[tag[:-13]], 'tag': tag, 'status': 'WAIT', 'num': int(num), 'date': ''}
+            # 对irm作特殊判断
+            if tag[:-13] == 'irm':
+                app_name = table.cell(x, y - 3).value
+                print(app_name)
+                # 如果是irm-task
+                if 'task' in app_name:
+                    job = {'name': 'irm-job-pro', 'tag': tag, 'status': 'WAIT', 'num': int(num), 'date': ''}
+                else:
+                    job = {'name': gitname_jobname[tag[:-13]], 'tag': tag, 'status': 'WAIT', 'num': int(num),
+                           'date': ''}
+            else:
+                job = {'name': gitname_jobname[tag[:-13]], 'tag': tag, 'status': 'WAIT', 'num': int(num), 'date': ''}
             jobs.append(job)
             # gitname_tag = (tag[:-13], tag)
             # gitname_tag_list.append(gitname_tag)
@@ -236,7 +246,11 @@ def recv(request):
         with open('job.xlsx', 'wb') as f:
             f.write(job_xlsx.read())
         global JOBS
-        JOBS = handle_xlsx('job.xlsx')
+        # xlsx 处理转换成job信息
+        try:
+            JOBS = handle_xlsx('job.xlsx')
+        except Exception as e:
+            return JsonResponse({"code": "-1", "msg": "请上传正确的Excel文件"})
         print(job_xlsx)
         return redirect(jobs)
     elif tag:
@@ -265,11 +279,11 @@ def jobs(request):
 
 
 def build(request):
-    job_name = request.POST.get('job_name')
+    job_tag = request.POST.get('job_tag')
     # 如果获取到单个的 job_name 单独构建一个
-    if job_name:
+    if job_tag:
         for job in JOBS:
-            if job['name'] == job_name:
+            if job['tag'] == job_tag:
                 # 构建
                 result = build_job_url(job)
                 # 构建结束之后判断构建成功与否
