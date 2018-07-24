@@ -226,6 +226,8 @@ if IS_USE_CELERY:
 # 应用日志配置
 BK_LOG_DIR = os.environ.get('BK_LOG_DIR', '/data/paas/apps/logs/')
 LOGGING_DIR = os.path.join(BASE_DIR, 'logs', APP_ID)
+LOGGING_PATH = os.path.join(BASE_DIR, 'logs', APP_ID, 'app.log')
+
 LOG_CLASS = 'logging.handlers.RotatingFileHandler'
 if RUN_MODE == 'DEVELOP':
     LOG_LEVEL = 'DEBUG'
@@ -248,7 +250,7 @@ LOGGING = {
     'disable_existing_loggers': False,
     'formatters': {
         'verbose': {
-            'format': '%(levelname)s [%(asctime)s] %(pathname)s %(lineno)d %(funcName)s %(process)d %(thread)d \n \t %(message)s \n',  # noqa
+            'format': '[%(levelname)s] [%(asctime)s] %(pathname)s line:%(lineno)d  %(message)s \n',  # noqa
             'datefmt': '%Y-%m-%d %H:%M:%S'
         },
         'simple': {
@@ -305,7 +307,7 @@ LOGGING = {
         # the root logger ,用于整个project的logger
         'root': {
             'handlers': ['root'],
-            'level': LOG_LEVEL,
+            'level': 'DEBUG',
             'propagate': True,
         },
         # 组件调用日志

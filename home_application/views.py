@@ -23,6 +23,14 @@ from django.core.paginator import Paginator
 from common.mymako import render_mako_context
 from .models import BuildHistory
 
+import logging
+# logger.basicConfig(level=logger.INFO,
+#                     format='%(asctime)s %(filename)s[line:%(lineno)d] %(levelname)s %(message)s',
+#                     datefmt='%a, %d %b %Y %H:%M:%S',
+#                     filename=logger_PATH,
+#                     filemode='w')
+logger = logging.getLogger('root')
+
 
 def home(request):
     """
@@ -51,8 +59,9 @@ API_TOKEN = 'c7541d880c98abfa3eb4b11d11acf11b'
 JENKINS_URL = 'http://18.16.200.105:8080/jenkins/'
 # 获取jenkins server 对象
 server = jenkins.Jenkins(JENKINS_URL, username=USER_ID, password=API_TOKEN)
-
+# institution-h5.api
 gitname_jobname = {
+    'institution-h5-api': 'institution-h5.api',
     'irm-task': 'irm-job-pro',
     'base.user': 'new-shb-product-soa-base.user-parent',
     'shanghai.schedule': 'new-shb-product-上海银行调度（shanghai.schedule）',
@@ -195,13 +204,15 @@ def build_job_url(job):
         'token': API_TOKEN,
         'TAG': job["tag"]
     }
-    print(params)
+    # print(params)
     result = server.build_job(job['name'], parameters=params)
+    logger.info(u'{} 构建开始=========='.format(job['name']))
     print('正在构建', job['name'])
     time.sleep(3)
     # 构建后获取上一次构建的编号 即当前编号
     now_build = get_job_info(job)
     while last_build == now_build:
+        logger.info(u'正在准备构建中 休眠3s==========')
         print('sleep 3s')
         time.sleep(3)
         now_build = get_job_info(job)
@@ -214,11 +225,12 @@ def build_job_url(job):
     # job['number'] = last_build
     status = True
     result = None
+    logger.info(u'{} 构建中=========='.format(job['name']))
     while status:
         print(job['name'] + '构建中...........')
         job['status'] = 'BUILDING'
         # 如果是构建中 status 返回 Ture 构建结束 返回 False
-        time.sleep(30)
+        time.sleep(15)
         status, result = get_build_info(job)
 
     # 构建完成后记录构建状态
@@ -241,6 +253,7 @@ def build_job_url(job):
 def recv(request):
     tag = request.POST.get('job_tag')
     job_xlsx = request.FILES.get('job_xlsx')
+    # 如果获取到xlsx文件
     if job_xlsx:
         # job_xlsx = request.FILES.get('job_xlsx')
         with open('job.xlsx', 'wb') as f:
@@ -250,11 +263,17 @@ def recv(request):
         try:
             JOBS = handle_xlsx('job.xlsx')
         except Exception as e:
-            return JsonResponse({"code": "-1", "msg": "请上传正确的Excel文件"})
+            print(e)
+            return JsonResponse({"code": "-1", "msg": u"请上传正确的Excel文件"})
+        logger.info(u'{} 解析完毕'.format(job_xlsx))
         print(job_xlsx)
         return redirect(jobs)
+    # 如果获取到的是tag号
     elif tag:
-        num = len(JOBS) + 1
+        if JOBS:
+            num = JOBS[-1]['num'] + 1
+        else:
+            num = 1
         job = {'name': gitname_jobname[tag[:-13]], 'tag': tag, 'status': 'WAIT', 'num': int(num), 'date': ''}
         JOBS.append(job)
         return redirect(jobs)
@@ -270,6 +289,7 @@ def jobs(request):
     # print(JOBS)
     if not JOBS:
         return redirect(index)
+
     return render_mako_context(request, '/home_application/packing.html', {'jobs': JOBS})
 
 
@@ -280,7 +300,7 @@ def jobs(request):
 
 def build(request):
     job_tag = request.POST.get('job_tag')
-    # 如果获取到单个的 job_name 单独构建一个
+    # 如果获取到 job_tag 则是单独点击构建
     if job_tag:
         for job in JOBS:
             if job['tag'] == job_tag:
@@ -288,55 +308,50 @@ def build(request):
                 result = build_job_url(job)
                 # 构建结束之后判断构建成功与否
                 if result in ('SUCCESS', 'UNSTABLE'):
+                    logger.info(job['name'] + '构建成功, 状态为', result)
                     print(job['name'] + '构建成功', result)
-                    # 打印job构建地址
-                    # job['detail'] = 'http://18.16.200.105:8080/jenkins/job/' + job['name'] + '/' + str(job['number']) + '/'
-                    # 构造结束时间
-                    # print('http://18.16.200.105:8080/jenkins/job/' + job['name'] + '/' + str(job['number']) + '/')
+                    # 构建成功之后添加成功标识
+                    job['is_success'] = True
                     return JsonResponse({"code": "0", "msg": "构建成功"})
                 else:
+                    logger.info(job['name'] + '构建失败, 状态为', result)
+                    # 构建失败之后添加失败标识
+                    job['is_success'] = False
                     print(job['name'] + '构建失败', result)
-                    # 打印job构建地址
-                    # job['detail'] = 'http://18.16.200.105:8080/jenkins/job/' + job['name'] + '/' + str(job['number']) + '/'
-                    print('http://18.16.200.105:8080/jenkins/job/' + job['name'] + '/' + str(job['number']) + '/')
-                    # 构造结束时间
                     return JsonResponse({"code": "-1", "msg": "{} 构建失败".format(job['name'])})
 
     else:
         # 按照顺序依次构建
         for job in JOBS:
+            if job.get('is_success'):
+                continue
             # 构建
             result = build_job_url(job)
             # 构建结束之后判断构建成功与否
             if result in ('SUCCESS', 'UNSTABLE'):
-                print(job['name'] + '构建成功', result)
-                # 打印job构建地址
-                # job['detail'] = 'http://18.16.200.105:8080/jenkins/job/' + job['name'] + '/' + str(job['number']) + '/'
-                # 构造结束时间
-                # job['date'] = str(datetime.datetime.now())[:-10]
-                print('http://18.16.200.105:8080/jenkins/job/' + job['name'] + '/' + str(job['number']) + '/')
+                # 构建成功之后添加成功标识
+                job['is_success'] = True
+                logger.info(job['name'] + '构建成功, 状态为', result)
             else:
+                # 构建失败之后添加失败标识
+                job['is_success'] = False
+                logger.info(job['name'] + '构建失败, 状态为', result)
                 print(job['name'] + '构建失败', result)
-                # 打印job构建地址
-                # job['detail'] = 'http://18.16.200.105:8080/jenkins/job/' + job['name'] + '/' + str(job['number']) + '/'
-                print('http://18.16.200.105:8080/jenkins/job/' + job['name'] + '/' + str(job['number']) + '/')
                 return JsonResponse({"code": "-1", "msg": "{} 构建失败".format(job['name'])})
-
+        logger.info('全部构建成功')
         return JsonResponse({"code": "0", "msg": "全部构建成功"})
 
 
 def del_job(request):
     job_name = request.POST.get('job_name')
-    print(job_name)
     for job in JOBS:
-        print(job)
         if job['name'] == job_name:
             JOBS.remove(job)
-            print(JOBS)
             return JsonResponse({"code": "0", "msg": "{} 删除成功".format(job['name'])})
 
 
 def get_status(request):
+    # logger.info(JOBS)
     if JOBS:
         for job in JOBS:
             job_id = '#' + str(job['num'])
@@ -347,12 +362,15 @@ def get_status(request):
 
 
 def edit(request):
+    logger.info('编辑TAG')
+    logger.info('编辑前 {} '.format(JOBS))
     tag = request.POST.get('tag')
     try:
         for job in JOBS:
             if job['name'] == gitname_jobname[tag[:-13]]:
                 job['tag'] = tag
-            print(JOBS)
+
+            logger.info('编辑后 {} '.format(JOBS))
             return JsonResponse({"code": "0", "msg": "修改成功"})
     except Exception as e:
         return JsonResponse({"code": "-1", "msg": "输入的tag有误"})
@@ -427,3 +445,8 @@ def get_build_history(request, page):
 
     return render_mako_context(request, '/home_application/history.html',
                                {"now_page": page, "jobs": jobs, "pages": pages, 'last_page': paginator.num_pages})
+
+def empty_job(request):
+    global JOBS
+    JOBS = []
+    return JsonResponse({"code": "0", "msg": "清除成功"})

@@ -21,6 +21,7 @@ urlpatterns = patterns(
     (r'^del$', 'del_job'),
     (r'^status$', 'get_status'),
     (r'^edit$', 'edit'),
+    (r'^empty', 'empty_job'),
     (r'^history/(.*)', 'get_build_history'),
     (r'^$', 'index'),
     (r'^dev-guide/$', 'dev_guide'),

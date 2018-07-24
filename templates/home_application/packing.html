@@ -74,10 +74,16 @@
                 <th>日期</th>
                 <th>详情</th>
                 <th>状态</th>
-                <th>操作
+                <th>
                     <div style="display: inline-block;margin-left: 5px" id = "exec" class="btn btn-xs btn-success" title="构建" >
                         <i style="height: 22px;" class="glyphicon " onclick="build_by_list()">一键构建</i>
+
                     </div>
+                     <div style="display: inline-block;margin-left: 5px" id = "exec" class="btn btn-xs btn-danger" title="构建" >
+                        <i style="height: 22px;" class="glyphicon" onclick="empty()">一键清空</i>
+
+                    </div>
+
                 </th>
             </tr>
         </thead>
@@ -136,7 +142,7 @@
     function build(th) {
         // 获取 job_name
         var job_tag = $(th).parent('td').siblings().eq(2).text()
-        alert(job_tag)
+
          $.post('/build', {"job_tag": job_tag}, function (data) {
              get_status()
              alert(data.msg)
@@ -221,6 +227,13 @@
 
     })
 
+    function empty() {
+        $.get('/empty', function (data) {
+            if(data.code == '0'){
+                location.reload()
+            }
+        })
+    }
 
 </script>
 </html>
