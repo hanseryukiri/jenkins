@@ -250,7 +250,7 @@ LOGGING = {
     'disable_existing_loggers': False,
     'formatters': {
         'verbose': {
-            'format': '[%(levelname)s] [%(asctime)s] %(pathname)s line:%(lineno)d  %(message)s \n',  # noqa
+            'format': '[%(levelname)s] [%(asctime)s] %(pathname)s line:%(lineno)d  %(message)s ',  # noqa
             'datefmt': '%Y-%m-%d %H:%M:%S'
         },
         'simple': {

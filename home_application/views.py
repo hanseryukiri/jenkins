@@ -156,7 +156,10 @@ def handle_xlsx(job_xlsx):
                     job = {'name': gitname_jobname[tag[:-13]], 'tag': tag, 'status': 'WAIT', 'num': int(num),
                            'date': ''}
             else:
-                job = {'name': gitname_jobname[tag[:-13]], 'tag': tag, 'status': 'WAIT', 'num': int(num), 'date': ''}
+                try:
+                    job = {'name': gitname_jobname[tag[:-13]], 'tag': tag, 'status': 'WAIT', 'num': int(num), 'date': ''}
+                except Exception as e:
+                    logger.error('{} 未配置'.format(tag[:-13]))
             jobs.append(job)
             # gitname_tag = (tag[:-13], tag)
             # gitname_tag_list.append(gitname_tag)
@@ -206,13 +209,13 @@ def build_job_url(job):
     }
     # print(params)
     result = server.build_job(job['name'], parameters=params)
-    logger.info(u'{} 构建开始=========='.format(job['name']))
+    logger.info(u'{} 构建开始...'.format(job['name']))
     print('正在构建', job['name'])
     time.sleep(3)
     # 构建后获取上一次构建的编号 即当前编号
     now_build = get_job_info(job)
     while last_build == now_build:
-        logger.info(u'正在准备构建中 休眠3s==========')
+        logger.info(u'正在准备构建中 休眠3s...')
         print('sleep 3s')
         time.sleep(3)
         now_build = get_job_info(job)
@@ -225,7 +228,7 @@ def build_job_url(job):
     # job['number'] = last_build
     status = True
     result = None
-    logger.info(u'{} 构建中=========='.format(job['name']))
+    logger.info(u'{} 构建中...'.format(job['name']))
     while status:
         print(job['name'] + '构建中...........')
         job['status'] = 'BUILDING'
