@@ -145,8 +145,17 @@ def handle_xlsx(job_xlsx):
             tag = table.cell(x, y).value
             num = table.cell(x, y + 5).value
             # print(tag)
+            # 对master作特殊判断
+            if tag == 'master':
+                app_name = table.cell(x, y - 3).value
+                if app_name == 'ecd-api':
+                    job = {'name': 'irm-ecd-api', 'tag': tag, 'status': 'WAIT', 'num': int(num), 'date': ''}
+                elif app_name == 'ecd-server':
+                    job = {'name': 'irm-ecd', 'tag': tag, 'status': 'WAIT', 'num': int(num), 'date': ''}
+                elif app_name == 'agw':
+                    job = {'name': 'irm-agw-pro', 'tag': tag, 'status': 'WAIT', 'num': int(num), 'date': ''}
             # 对irm作特殊判断
-            if tag[:-13] == 'irm':
+            elif tag[:-13] == 'irm':
                 app_name = table.cell(x, y - 3).value
                 print(app_name)
                 # 如果是irm-task
@@ -155,11 +164,20 @@ def handle_xlsx(job_xlsx):
                 else:
                     job = {'name': gitname_jobname[tag[:-13]], 'tag': tag, 'status': 'WAIT', 'num': int(num),
                            'date': ''}
+            # 对order作特殊判断
+            elif tag[:-13] == 'order-server':
+                app_name = table.cell(x, y - 3).value
+                # 如果是order-api
+                if 'api' in app_name:
+                    job = {'name': 'order-api-build-pro', 'tag': tag, 'status': 'WAIT', 'num': int(num), 'date': ''}
+                else:
+                    job = {'name': gitname_jobname[tag[:-13]], 'tag': tag, 'status': 'WAIT', 'num': int(num),
+                           'date': ''}
             else:
                 try:
                     job = {'name': gitname_jobname[tag[:-13]], 'tag': tag, 'status': 'WAIT', 'num': int(num), 'date': ''}
                 except Exception as e:
-                    logger.error('{} 未配置'.format(tag[:-13]))
+                    logger.error('{} 未配置到解析字典'.format(tag[:-13]))
             jobs.append(job)
             # gitname_tag = (tag[:-13], tag)
             # gitname_tag_list.append(gitname_tag)
@@ -207,8 +225,10 @@ def build_job_url(job):
         'token': API_TOKEN,
         'TAG': job["tag"]
     }
-    # print(params)
-    result = server.build_job(job['name'], parameters=params)
+    if job['tag'] == 'master':
+        server.build_job(job['name'], token=API_TOKEN)
+    else:
+        server.build_job(job['name'], parameters=params)
     logger.info(u'{} 构建开始...'.format(job['name']))
     print('正在构建', job['name'])
     time.sleep(3)
