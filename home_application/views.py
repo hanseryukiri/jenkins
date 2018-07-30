@@ -275,6 +275,7 @@ def build_job_url(job):
 
 def recv(request):
     tag = request.POST.get('job_tag')
+    print(tag)
     job_xlsx = request.FILES.get('job_xlsx')
     # 如果获取到xlsx文件
     if job_xlsx:
@@ -445,7 +446,7 @@ def get_build_history(request, page):
         job = {}
         job['name'] = job_obj.name
         job['status'] = job_obj.status
-        job['date'] = str(job_obj.date)[:-7]
+        job['date'] = str(job_obj.date)
         job['tag'] = job_obj.tag
         job['detail'] = job_obj.detail
         jobs.append(job)
