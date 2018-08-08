@@ -145,7 +145,7 @@
         // 获取 job_name
         var job_tag = $(th).parent('td').siblings().eq(2).text();
         var job_index = $(th).parent('td').parent('tr').index();
-        alert(job_index)
+
 
         $.post('/package/build', {"job_index": job_index}, function (data) {
 

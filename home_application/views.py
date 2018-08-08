@@ -188,8 +188,9 @@ def handle_xlsx(job_xlsx):
             else:
                 try:
                     job = {'name': gitname_jobname[tag[:-13]], 'tag': tag, 'status': 'WAIT', 'num': int(num),
-                           'date': '', 'task_name': gitname_jobname[tag[:-13]]}
+                           'date': '', 'task_name': tag[:-13]}
                 except Exception as e:
+                    print(e)
                     logger.error('{} 未配置到解析字典'.format(tag[:-13]))
             jobs.append(job)
 
@@ -341,7 +342,7 @@ def recv(request):
         else:
             num = 1
         job = {'name': gitname_jobname[tag[:-13]], 'tag': tag, 'status': 'WAIT', 'num': int(num), 'date': '',
-               }
+               'task_name': tag[:-13]}
         JOBS.append(job)
         return redirect(jobs)
     else:
@@ -445,36 +446,6 @@ def edit(request):
     logger.info('修改后 {} '.format(JOBS))
     return JsonResponse({"code": "0", "msg": "修改成功"})
 
-
-
-# def get_build_history(request, page):
-#     # 每页显示多少条数据
-#     one_page_count = 10
-#     if not page:
-#         page = 1
-#
-#     page = int(page)
-#     # 获取历史记录的总条数
-#     counts = BuildHistory.objects.all().count()
-#     if counts % one_page_count != 0:
-#         page_count = counts // one_page_count + 1
-#     else:
-#         page_count = counts // one_page_count
-#     start = (page - 1) * one_page_count
-#     end = page * one_page_count
-#     # 当前页码的返回数据集
-#     job_query = BuildHistory.objects.all().order_by('-date')[start: end]
-#     jobs = []
-#     for job_obj in job_query:
-#         job = {}
-#         job['name'] = job_obj.name
-#         job['status'] = job_obj.status
-#         job['date'] = job_obj.date
-#         job['tag'] = job_obj.tag
-#         job['detail'] = job_obj.detail
-#         jobs.append(job)
-#     print(jobs)
-#     return render_mako_context(request, '/home_application/history.html', {"page": page, "jobs": jobs, "page_count": page_count})
 
 def get_build_history(request, page):
     # 每页显示多少条数据
