@@ -143,13 +143,16 @@
 <script>
     function build(th) {
         // 获取 job_name
-        var job_tag = $(th).parent('td').siblings().eq(2).text()
+        var job_tag = $(th).parent('td').siblings().eq(2).text();
+        var job_index = $(th).parent('td').parent('tr').index();
+        alert(job_index)
 
-         $.post('/package/build', {"job_tag": job_tag}, function (data) {
-             get_status()
+        $.post('/package/build', {"job_index": job_index}, function (data) {
+
              alert(data.msg)
 
          })
+
     }
 
     function build_by_list() {
@@ -179,8 +182,10 @@
     function edit(th) {
         var old_tag = $(th).parent().siblings().eq(2).html()
         var new_tag = prompt("请修改tag号", old_tag);
+        var job_index = $(th).parent('td').parent('tr').index();
+
         if (new_tag != null){
-            $.post('/package/edit', {'tag': new_tag}, function (data) {
+            $.post('/package/edit', {'tag': new_tag,'job_index': job_index}, function (data) {
                 if (data.code == 0){
                     $(th).parent().siblings().eq(2).html(new_tag);
                     alert(data.msg)

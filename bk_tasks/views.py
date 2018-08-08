@@ -38,18 +38,19 @@ def tasks(request, page):
         task_query = BuildHistory.objects.filter(is_release=0).order_by('date')
         for task_obj in task_query:
             task = {}
-            task['name'] = re.match('(.*?)_', task_obj.tag).group(1)
+            task['name'] = task_obj.task_name
             # 0代表未执行
             task['status'] = '0'
             task['date'] = str(task_obj.date)
-            # task['is_release'] = task_obj.is_release
-            scripts = {}
-            for script_id in gitname_taskid.get(task['name'])[1]:
-                scripts[str(script_id)] = {'status': '', 'start_time': '', 'end_time': '', 'detail': ''}
-            task['scripts'] = scripts
-            task['app_id'] = gitname_taskid.get(task['name'])[0]
-            task['id'] = task_obj.id
-            TASKS[task['name']] = task
+            script_list = gitname_taskid.get(task['name'], ['', ''])[1]
+            if script_list:
+                scripts = {}
+                for script_id in script_list:
+                    scripts[str(script_id)] = {'status': '', 'start_time': '', 'end_time': '', 'detail': ''}
+                task['scripts'] = scripts
+                task['app_id'] = gitname_taskid.get(task['name'])[0]
+                task['id'] = task_obj.id
+                TASKS[task['name']] = task
 
         paginator = Paginator(BuildHistory.objects.filter(is_release=0), one_page_count)
     else:

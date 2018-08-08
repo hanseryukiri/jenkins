@@ -162,6 +162,7 @@ def handle_xlsx(job_xlsx):
                 elif app_name == 'agw':
                     job = {'name': 'irm-agw-pro', 'tag': tag, 'status': 'WAIT', 'num': int(num), 'date': '',
                            }
+                job['task_name'] = app_name
             # 对irm作特殊判断
             elif tag[:-13] == 'irm':
                 app_name = table.cell(x, y - 3).value
@@ -169,23 +170,25 @@ def handle_xlsx(job_xlsx):
                 # 如果是irm-task
                 if 'task' in app_name:
                     job = {'name': 'irm-job-pro', 'tag': tag, 'status': 'WAIT', 'num': int(num), 'date': '',
-                           }
+                           'task_name': 'irm-task'}
                 else:
                     job = {'name': gitname_jobname[tag[:-13]], 'tag': tag, 'status': 'WAIT', 'num': int(num),
-                           'date': '', }
+                           'date': '', 'task_name': 'irm'}
+
             # 对order作特殊判断
             elif tag[:-13] == 'order-server':
                 app_name = table.cell(x, y - 3).value
                 # 如果是order-api
                 if 'api' in app_name:
-                    job = {'name': 'order-api-build-pro', 'tag': tag, 'status': 'WAIT', 'num': int(num), 'date': ''}
+                    job = {'name': 'order-api-build-pro', 'tag': tag, 'status': 'WAIT', 'num': int(num), 'date': '',
+                           'task_name': app_name}
                 else:
                     job = {'name': gitname_jobname[tag[:-13]], 'tag': tag, 'status': 'WAIT', 'num': int(num),
-                           'date': '', }
+                           'date': '', 'task_name': 'order-server'}
             else:
                 try:
                     job = {'name': gitname_jobname[tag[:-13]], 'tag': tag, 'status': 'WAIT', 'num': int(num),
-                           'date': '', }
+                           'date': '', 'task_name': gitname_jobname[tag[:-13]]}
                 except Exception as e:
                     logger.error('{} 未配置到解析字典'.format(tag[:-13]))
             jobs.append(job)
@@ -249,6 +252,7 @@ def build_job_url(job):
         'TAG': job["tag"]
     }
     if job['tag'] == 'master':
+        print(job['name'])
         server.build_job(job['name'], token=API_TOKEN)
     else:
         server.build_job(job['name'], parameters=params)
@@ -286,7 +290,7 @@ def build_job_url(job):
     # 根据构建结果 添加发布标识
     if result in ('SUCCESS', 'UNSTABLE'):
         # 如果是非基础包 发布标识为 0 未发布 基础包 1 已发布
-        if gitname_taskid.get(job['tag'][:-13]):
+        if gitname_taskid.get(job['task_name']):
             job['is_release'] = 0
         else:
             job['is_release'] = 1
@@ -304,7 +308,8 @@ def build_job_url(job):
         'detail': job['detail'],
         'status': job['status'],
         'date': job['date'],
-        'is_release': job['is_release']
+        'is_release': job['is_release'],
+        'task_name': job['task_name']
     }
     BuildHistory.objects.create(**context)
     return result
@@ -367,27 +372,26 @@ def set_expire_time():
 
 
 def build(request):
-    job_tag = request.POST.get('job_tag')
-    # 如果获取到 job_tag 则是单独点击构建
-    if job_tag:
-        for job in JOBS:
-            if job['tag'] == job_tag:
-                # 构建
-                result = build_job_url(job)
-                # 构建结束之后判断构建成功与否
-                if result in ('SUCCESS', 'UNSTABLE'):
-                    logger.info(job['name'] + '构建成功, 状态为', result)
-                    print(job['name'] + '构建成功', result)
-                    # 构建成功之后添加成功标识
-                    job['is_success'] = True
-                    set_expire_time()
-                    return JsonResponse({"code": "0", "msg": "构建成功"})
-                else:
-                    logger.info(job['name'] + '构建失败, 状态为', result)
-                    # 构建失败之后添加失败标识
-                    job['is_success'] = False
-                    print(job['name'] + '构建失败', result)
-                    return JsonResponse({"code": "-1", "msg": "{} 构建失败".format(job['name'])})
+    job_index = int(request.POST.get('job_index'))
+    # 如果获取到 job_index 则是单独点击构建
+    if job_index:
+        job = JOBS[job_index]
+        # 构建
+        result = build_job_url(job)
+        # 构建结束之后判断构建成功与否
+        if result in ('SUCCESS', 'UNSTABLE'):
+            logger.info('{}构建成功, 状态为 {}'.format(job['name'], result))
+            print(job['name'] + '构建成功', result)
+            # 构建成功之后添加成功标识
+            job['is_success'] = True
+            set_expire_time()
+            return JsonResponse({"code": "0", "msg": "构建成功"})
+        else:
+            logger.info('{}构建失败, 状态为 {}'.format(job['name'], result))
+            # 构建失败之后添加失败标识
+            job['is_success'] = False
+            print(job['name'] + '构建失败', result)
+            return JsonResponse({"code": "-1", "msg": "{} 构建失败".format(job['name'])})
 
     else:
         # 按照顺序依次构建
@@ -400,11 +404,11 @@ def build(request):
             if result in ('SUCCESS', 'UNSTABLE'):
                 # 构建成功之后添加成功标识
                 job['is_success'] = True
-                logger.info(job['name'] + '构建成功, 状态为', result)
+                logger.info('{}构建成功, 状态为 {}'.format(job['name'], result))
             else:
                 # 构建失败之后添加失败标识
                 job['is_success'] = False
-                logger.info(job['name'] + '构建失败, 状态为', result)
+                logger.info('{}构建失败, 状态为 {}'.format(job['name'], result))
                 print(job['name'] + '构建失败', result)
                 return JsonResponse({"code": "-1", "msg": "{} 构建失败".format(job['name'])})
         logger.info('全部构建成功')
@@ -432,18 +436,15 @@ def get_status(request):
 
 
 def edit(request):
-    logger.info('编辑TAG')
-    logger.info('编辑前 {} '.format(JOBS))
+    logger.info('修改TAG')
+    logger.info('修改前 {} '.format(JOBS))
     tag = request.POST.get('tag')
-    try:
-        for job in JOBS:
-            if job['name'] == gitname_jobname[tag[:-13]]:
-                job['tag'] = tag
+    job_index = request.POST.get('job_index')
+    job = JOBS[int(job_index)]
+    job['tag'] = tag
+    logger.info('修改后 {} '.format(JOBS))
+    return JsonResponse({"code": "0", "msg": "修改成功"})
 
-            logger.info('编辑后 {} '.format(JOBS))
-            return JsonResponse({"code": "0", "msg": "修改成功"})
-    except Exception as e:
-        return JsonResponse({"code": "-1", "msg": "输入的tag有误"})
 
 
 # def get_build_history(request, page):

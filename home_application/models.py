@@ -16,6 +16,7 @@ class BuildHistory(models.Model):
     num = models.IntegerField(verbose_name='序号')
     name = models.CharField(max_length=128, verbose_name='任务名')
     tag = models.CharField(max_length=50, verbose_name='任务TAG号')
+    task_name = models.CharField(max_length=50, verbose_name='蓝鲸任务名', null=True)
     date = models.DateTimeField(auto_now_add=True, verbose_name='任务结束时间')
     detail = models.CharField(max_length=128, verbose_name='任务详情链接')
     status = models.CharField(max_length=10, verbose_name='任务状态')
