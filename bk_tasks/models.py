@@ -12,19 +12,17 @@ See the License for the specific language governing permissions and limitations 
 from django.db import models
 
 
-class BuildHistory(models.Model):
-    num = models.IntegerField(verbose_name='序号')
-    name = models.CharField(max_length=128, verbose_name='任务名')
-    tag = models.CharField(max_length=50, verbose_name='任务TAG号')
-    date = models.DateTimeField(auto_now_add=True, verbose_name='任务结束时间')
-    detail = models.CharField(max_length=128, verbose_name='任务详情链接')
-    status = models.CharField(max_length=10, verbose_name='任务状态')
-    # 发布状态 0 为未发布 1 为已发布 默认为0
-    is_release = models.IntegerField(verbose_name='发布状态', default=0)
+class ReleaseHistory(models.Model):
+    script_id = models.IntegerField(verbose_name='脚本id')
+    name = models.CharField(max_length=128, verbose_name='脚本名')
+    start_time = models.DateTimeField(verbose_name='开始时间', blank=True)
+    end_time = models.DateTimeField(verbose_name='结束时间', blank=True)
+    detail = models.CharField(max_length=128, verbose_name='详情链接')
+    status = models.CharField(max_length=10, verbose_name='状态')
 
     class Meta(object):
-        db_table = 'job_build_history'
-        verbose_name = u'构建历史'
+        db_table = 'script_release_history'
+        verbose_name = u'发布信息表'
         verbose_name = verbose_name
 
 

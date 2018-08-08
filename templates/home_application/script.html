@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title></title>
+    <!-- 若您需要使用Kendo UI Professional，请联系版权人获得合法的授权或许可。 -->
+
+    <!-- Bootstrap css -->
+    <link href="https://magicbox.bkclouds.cc/static_api/v3/assets/bootstrap-3.3.4/css/bootstrap.min.css" rel="stylesheet">
+    <!-- kendo ui css -->
+    <link href="https://magicbox.bkclouds.cc/static_api/v3/assets/kendoui-2015.2.624/styles/kendo.common.min.css" rel="stylesheet">
+    <link href="https://magicbox.bkclouds.cc/static_api/v3/assets/kendoui-2015.2.624/styles/kendo.default.min.css" rel="stylesheet">
+    <!-- font-awesome -->
+    <link href="https://magicbox.bkclouds.cc/static_api/v3/assets/fontawesome/css/font-awesome.css" rel="stylesheet">
+    <!--蓝鲸提供的公用样式库 -->
+    <link href="https://magicbox.bkclouds.cc/static_api/v3/bk/css/bk.css" rel="stylesheet">
+    <!-- 如果要使用Bootstrap的js插件，必须先调入jQuery -->
+    <script src="https://magicbox.bkclouds.cc/static_api/v3/assets/js/jquery-1.10.2.min.js"></script>
+    <!-- 包括所有bootstrap的js插件或者可以根据需要使用的js插件调用　-->
+    <script src="https://magicbox.bkclouds.cc/static_api/v3/assets/bootstrap-3.3.4/js/bootstrap.min.js"></script>
+    <!-- 包括所有kendoui的js插件或者可以根据需要使用的js插件调用　-->
+    <script src="https://magicbox.bkclouds.cc/static_api/v3/assets/kendoui-2015.2.624/js/kendo.all.min.js"></script>
+    <script src="https://magicbox.bkclouds.cc/static_api/v3/bk/js/bk.js"></script>
+    <!-- 以下两个插件用于在IE8以及以下版本浏览器支持HTML5元素和媒体查询，如果不需要用可以移除 -->
+    <!--[if lt IE 9]>
+    <script src="https://magicbox.bkclouds.cc/static_api/v3/assets/js/html5shiv.min.js"></script>
+    <script src="https://magicbox.bkclouds.cc/static_api/v3/assets/js/respond.min.js"></script>
+    <![endif]-->
+    <!-- 数据埋点统计 -->
+    <script src="https://magicbox.bkclouds.cc/static_api/analysis.js"></script>
+    <style>
+        .box{
+
+            margin: 50px;
+        }
+        td{
+           text-align: left;
+        }
+    </style>
+</head>
+<body>
+<div class = "box">
+<div class="king-block king-block-bordered">
+  <div class="king-block-header king-gray-light">
+      <h3 class="king-block-title" style="display: inline-block">发布脚本</h3>
+      <h3 class="king-block-title" style="display: inline-block">丨</h3>
+      <a href="/bk_tasks/tasks" class="king-block-title" style="display: inline-block">返回发布列表</a>
+  </div>
+  <div class="king-block-content" style="text-align:center">
+      <table id="table2_demo1" class="table table-bordered table-hover">
+        <thead>
+          <tr>
+            <th>脚本名</th>
+            <th>服务器</th>
+            <th>步数</th>
+            <th>开始时间</th>
+            <th>结束时间</th>
+            <th>执行状态</th>
+            <th>详情</th>
+            <th>操作</th>
+          </tr>
+        </thead>
+        <tbody>
+        %for script in scripts :
+        <tr>
+            <td>${ script['name'] }</td>
+            <td>${ script['ip'] }</td>
+            <td>${ script['step'] }</td>
+
+            <td>${ script['start_time'] }</td>
+            <td>${ script['end_time'] }</td>
+            %if script['status'] == 9:
+                <td><span class="label bk-text-button" style="color: #46c37b">执行成功</span></td>
+            %elif script['status'] == 7:
+                <td><span class="label bk-text-button" style="color: #57a3f1">正在执行</span></td>
+            %elif script['status'] != '':
+                <td><span class="label bk-text-button" style="color: #ff7979">执行失败</span></td>
+            %else:
+                <td></td>
+            %endif
+
+            %if script.get('detail'):
+                <td><a href="${ script['detail'] }" target="view_window"> 详情 </a></td>
+            %else:
+                <td></td>
+            %endif
+
+            <td>
+                <button id = "exec"  task_id= "${ script['id'] }" task_name = "${ script['task_name'] }" app_id ="${ script['app_id'] }" class="btn btn-xs btn-success" title="发布" onclick="release(this)">
+                        <i class="glyphicon glyphicon-ok"></i>
+                </button>
+                <button id="stop" task_id ="${ script['id'] }" app_id ="${ script['app_id'] }" class="btn btn-xs btn-danger" title="删除" onclick="stop(this)">
+                        <i class="glyphicon glyphicon-remove"></i>
+                </button>
+            </td>
+          </tr>
+        %endfor
+
+        </tbody>
+      </table>
+
+    </div>
+  </div>
+</div>
+
+</body>
+<script>
+    function release(ths) {
+        var task_id = $(ths).attr('task_id')
+        var app_id = $(ths).attr('app_id')
+        var task_name = $(ths).attr('task_name')
+
+        $.post('/bk_tasks/release', {'task_id': task_id, 'app_id': app_id, 'task_name': task_name}, function (data) {
+            if (data.code == 0){
+                console.log(data.url)
+                console.log(data)
+                $(ths).parent('td').siblings().eq(6).html('<a href="'+ data.url + '" target="view_window"> 详情 </a>')
+                $(ths).parent('td').siblings().eq(3).text(data.start_time)
+                window.open(data.url)
+
+                var step = $(ths).parent('td').siblings().eq(2).text()
+                $.post('/bk_tasks/status', {'instance_id': data.instance_id, 'task_id': task_id, 'task_name': task_name}, function (data) {
+                    if (data.code == 0){
+                        console.log(data)
+                        $(ths).parent('td').siblings().eq(4).text(data.end_time)
+                        $(ths).parent('td').siblings().eq(5).html('<span class="label bk-text-button" style="color: #46c37b">'+ data.status +'</span>')
+
+            }else {
+                       $(ths).parent('td').siblings().eq(5).html('<span class="label bk-text-button" style="color: #d26a5c">'+ data.status +'</span>')
+                    }
+
+        })
+
+            }
+        })
+
+
+    }
+    
+    function stop() {
+        
+    }
+</script>
+</html>

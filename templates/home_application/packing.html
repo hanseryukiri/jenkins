@@ -61,9 +61,11 @@
 
 <div class="box">
     <div style="text-align: center">
-        <a  href="/history" style="font-size: 18px;" >构建历史</a>
+        <a  href="/package/history" style="font-size: 18px;" >构建历史</a>
         <span class="king-block-title" style="display: inline-block; color: #5c90d2; font-size: 18px">丨</span>
-        <a  href="#" style="font-size: 18px;" >更新发布</a>
+        <a  href="/bk_tasks/tasks" style="font-size: 18px;" >更新发布</a>
+##         <span class="king-block-title" style="display: inline-block; color: #5c90d2; font-size: 18px">丨</span>
+##         <a  href="/bk_tasks/history" style="font-size: 18px;" >发布历史</a>
     </div>
     <table class="table table-bordered table7_demo" style="margin-top: 10px">
         <thead>
@@ -97,7 +99,7 @@
                 <td>${ job['date'] }</td>
                 <td>
                     %if job.get('detail'):
-                    <a href=" ${ job.get('detail') } "> 详情 </a>
+                    <a href=" ${ job.get('detail') } " target="view_window"> 详情 </a>
                     %endif
                 </td>
                 <td id="${ job['num'] }">
@@ -143,7 +145,7 @@
         // 获取 job_name
         var job_tag = $(th).parent('td').siblings().eq(2).text()
 
-         $.post('/build', {"job_tag": job_tag}, function (data) {
+         $.post('/package/build', {"job_tag": job_tag}, function (data) {
              get_status()
              alert(data.msg)
 
@@ -159,7 +161,7 @@
     function del(th) {
         var job_name = $(th).parent('td').siblings().eq(1).text();
 
-        $.post('/del', {"job_name": job_name}, function (data) {
+        $.post('/package/del', {"job_name": job_name}, function (data) {
             if (data.code == '0'){
                 // 删除成功
                 if(confirm("确定删除数据")){
@@ -178,7 +180,7 @@
         var old_tag = $(th).parent().siblings().eq(2).html()
         var new_tag = prompt("请修改tag号", old_tag);
         if (new_tag != null){
-            $.post('/edit', {'tag': new_tag}, function (data) {
+            $.post('/package/edit', {'tag': new_tag}, function (data) {
                 if (data.code == 0){
                     $(th).parent().siblings().eq(2).html(new_tag);
                     alert(data.msg)
@@ -193,7 +195,7 @@
     }
     function get_status() {
             ##  window.location.reload();
-             $.get('/status', function (data) {
+             $.get('/package/status', function (data) {
                   console.log(data['jobs']);
                  for (var i = 0 ;i < data['jobs'].length; i++){
                      var job = data['jobs'][i];
@@ -228,7 +230,7 @@
     })
 
     function empty() {
-        $.get('/empty', function (data) {
+        $.get('/package/empty', function (data) {
             if(data.code == '0'){
                 location.reload()
             }

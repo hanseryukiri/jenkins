@@ -11,6 +11,9 @@ See the License for the specific language governing permissions and limitations 
 import re
 import time
 import sys
+import logging
+import json
+import requests
 
 reload(sys)
 sys.setdefaultencoding('utf-8')
@@ -21,9 +24,10 @@ from django.http import JsonResponse
 from django.shortcuts import redirect
 from django.core.paginator import Paginator
 from common.mymako import render_mako_context
-from .models import BuildHistory
 
-import logging
+from .models import BuildHistory
+from .job_info import *
+
 # logger.basicConfig(level=logger.INFO,
 #                     format='%(asctime)s %(filename)s[line:%(lineno)d] %(levelname)s %(message)s',
 #                     datefmt='%a, %d %b %Y %H:%M:%S',
@@ -31,35 +35,6 @@ import logging
 #                     filemode='w')
 logger = logging.getLogger('root')
 
-
-def home(request):
-    """
-    首页
-    """
-    return render_mako_context(request, '/home_application/home.html')
-
-
-def dev_guide(request):
-    """
-    开发指引
-    """
-    return render_mako_context(request, '/home_application/dev_guide.html')
-
-
-def contactus(request):
-    """
-    联系我们
-    """
-    return render_mako_context(request, '/home_application/contact.html')
-
-
-JOBS = []
-USER_ID = 'yanch'
-API_TOKEN = 'c7541d880c98abfa3eb4b11d11acf11b'
-JENKINS_URL = 'http://18.16.200.105:8080/jenkins/'
-# 获取jenkins server 对象
-server = jenkins.Jenkins(JENKINS_URL, username=USER_ID, password=API_TOKEN)
-# institution-h5.api
 gitname_jobname = {
     'institution-h5-api': 'institution-h5.api',
     'irm-task': 'irm-job-pro',
@@ -124,18 +99,50 @@ gitname_jobname = {
     'huishi-server': 'huishi-server',
 }
 
+EXPIRE_TIME = None
+
+
+def home(request):
+    """
+    首页
+    """
+    return render_mako_context(request, '/home_application/home.html')
+
+
+def dev_guide(request):
+    """
+    开发指引
+    """
+    return render_mako_context(request, '/home_application/dev_guide.html')
+
+
+def contactus(request):
+    """
+    联系我们
+    """
+    return render_mako_context(request, '/home_application/contact.html')
+
+
+JOBS = []
+USER_ID = 'yanch'
+API_TOKEN = 'c7541d880c98abfa3eb4b11d11acf11b'
+JENKINS_URL = 'http://18.16.200.105:8080/jenkins/'
+# 获取jenkins server 对象
+server = jenkins.Jenkins(JENKINS_URL, username=USER_ID, password=API_TOKEN)
+
+
+# institution-h5.api
+
 
 def handle_xlsx(job_xlsx):
     data = xlrd.open_workbook(job_xlsx)
-    # print(data.sheet_names())
     # 获取工作表（通过索引的方式）
     table = data.sheets()[1]
-    # print(dir(table))
     # 获取行数和列数
     nrows = table.nrows
     ncols = table.ncols
     # 获取"版本号"这个单元格的坐标
-    x, y = get_x_y(table)
+    x, y = get_x_y(table, u'版本号', nrows, ncols)
     # 获取所有版本号
     gitname_tag_list = []
     jobs = []
@@ -151,19 +158,21 @@ def handle_xlsx(job_xlsx):
                 if app_name == 'ecd-api':
                     job = {'name': 'irm-ecd-api', 'tag': tag, 'status': 'WAIT', 'num': int(num), 'date': ''}
                 elif app_name == 'ecd-server':
-                    job = {'name': 'irm-ecd', 'tag': tag, 'status': 'WAIT', 'num': int(num), 'date': ''}
+                    job = {'name': 'irm-ecd', 'tag': tag, 'status': 'WAIT', 'num': int(num), 'date': '', }
                 elif app_name == 'agw':
-                    job = {'name': 'irm-agw-pro', 'tag': tag, 'status': 'WAIT', 'num': int(num), 'date': ''}
+                    job = {'name': 'irm-agw-pro', 'tag': tag, 'status': 'WAIT', 'num': int(num), 'date': '',
+                           }
             # 对irm作特殊判断
             elif tag[:-13] == 'irm':
                 app_name = table.cell(x, y - 3).value
                 print(app_name)
                 # 如果是irm-task
                 if 'task' in app_name:
-                    job = {'name': 'irm-job-pro', 'tag': tag, 'status': 'WAIT', 'num': int(num), 'date': ''}
+                    job = {'name': 'irm-job-pro', 'tag': tag, 'status': 'WAIT', 'num': int(num), 'date': '',
+                           }
                 else:
                     job = {'name': gitname_jobname[tag[:-13]], 'tag': tag, 'status': 'WAIT', 'num': int(num),
-                           'date': ''}
+                           'date': '', }
             # 对order作特殊判断
             elif tag[:-13] == 'order-server':
                 app_name = table.cell(x, y - 3).value
@@ -172,30 +181,44 @@ def handle_xlsx(job_xlsx):
                     job = {'name': 'order-api-build-pro', 'tag': tag, 'status': 'WAIT', 'num': int(num), 'date': ''}
                 else:
                     job = {'name': gitname_jobname[tag[:-13]], 'tag': tag, 'status': 'WAIT', 'num': int(num),
-                           'date': ''}
+                           'date': '', }
             else:
                 try:
-                    job = {'name': gitname_jobname[tag[:-13]], 'tag': tag, 'status': 'WAIT', 'num': int(num), 'date': ''}
+                    job = {'name': gitname_jobname[tag[:-13]], 'tag': tag, 'status': 'WAIT', 'num': int(num),
+                           'date': '', }
                 except Exception as e:
                     logger.error('{} 未配置到解析字典'.format(tag[:-13]))
             jobs.append(job)
-            # gitname_tag = (tag[:-13], tag)
-            # gitname_tag_list.append(gitname_tag)
 
-    # print(gitname_tag_list)
-    # jobs = []
-    # for git_name, tag in gitname_tag_list:
-    #     job = {'name': gitname_jobname[git_name], 'tag': tag, 'status': 'waiting'}
-    #     jobs.append(job)
-    # job_tag[gitname_jobname[git_name]] = {'tag': tag, 'status': ''}
-    # print('jobs', jobs)
+    # 有前端发布
+    if len(data.sheets()) == 3:
+        table = data.sheets()[2]
+        # 获取行数和列数
+        nrows = table.nrows
+        ncols = table.ncols
+        x, y = get_x_y(table, u'发布版本', nrows, ncols)
+        date = '2222/12/31/00/00/00'
+        date = datetime.datetime.strptime(date, '%Y/%m/%d/%M/%H/%S')
+        for x in range(x + 1, nrows):
+            node_name = table.cell(x, y).value
+            context = {
+                'num': 1,
+                'name': node_name,
+                'tag': node_name,
+                'detail': '',
+                'date': date,
+                'status': '',
+                'is_release': 0
+            }
+            BuildHistory.objects.create(**context)
+
     return jobs
 
 
-def get_x_y(table):
-    for x in range(10):
-        for y in range(10):
-            if table.cell(x, y).value == u'版本号':
+def get_x_y(table, flag, nrows, ncols):
+    for x in range(nrows):
+        for y in range(ncols):
+            if table.cell(x, y).value == flag:
                 return x, y
 
 
@@ -258,8 +281,21 @@ def build_job_url(job):
 
     # 构建完成后记录构建状态
     job['status'] = result
-    # 构建完成狗记录构建时间
+    # 构建完成后记录构建时间
     job['date'] = str(datetime.datetime.now())[:-10]
+    # 根据构建结果 添加发布标识
+    if result in ('SUCCESS', 'UNSTABLE'):
+        # 如果是非基础包 发布标识为 0 未发布 基础包 1 已发布
+        if gitname_taskid.get(job['tag'][:-13]):
+            job['is_release'] = 0
+        else:
+            job['is_release'] = 1
+
+        logger.info('{}构建成功, 状态为 {}'.format(job['name'], result))
+    else:
+        # 构建失败之后添加不可发布标识
+        job['is_release'] = 2
+
     # 构建完成之后记录构建历史到数据库
     context = {
         'num': job['num'],
@@ -267,7 +303,8 @@ def build_job_url(job):
         'tag': job['tag'],
         'detail': job['detail'],
         'status': job['status'],
-        'date': job['date']
+        'date': job['date'],
+        'is_release': job['is_release']
     }
     BuildHistory.objects.create(**context)
     return result
@@ -298,7 +335,8 @@ def recv(request):
             num = JOBS[-1]['num'] + 1
         else:
             num = 1
-        job = {'name': gitname_jobname[tag[:-13]], 'tag': tag, 'status': 'WAIT', 'num': int(num), 'date': ''}
+        job = {'name': gitname_jobname[tag[:-13]], 'tag': tag, 'status': 'WAIT', 'num': int(num), 'date': '',
+               }
         JOBS.append(job)
         return redirect(jobs)
     else:
@@ -322,6 +360,12 @@ def jobs(request):
 #     pass
 
 
+def set_expire_time():
+    tomorrow = datetime.date.today() + datetime.timedelta(1)
+    global EXPIRE_TIME
+    EXPIRE_TIME = int(time.mktime(tomorrow.timetuple())) + 3600 * 6
+
+
 def build(request):
     job_tag = request.POST.get('job_tag')
     # 如果获取到 job_tag 则是单独点击构建
@@ -336,6 +380,7 @@ def build(request):
                     print(job['name'] + '构建成功', result)
                     # 构建成功之后添加成功标识
                     job['is_success'] = True
+                    set_expire_time()
                     return JsonResponse({"code": "0", "msg": "构建成功"})
                 else:
                     logger.info(job['name'] + '构建失败, 状态为', result)
@@ -363,6 +408,7 @@ def build(request):
                 print(job['name'] + '构建失败', result)
                 return JsonResponse({"code": "-1", "msg": "{} 构建失败".format(job['name'])})
         logger.info('全部构建成功')
+        set_expire_time()
         return JsonResponse({"code": "0", "msg": "全部构建成功"})
 
 
@@ -440,7 +486,7 @@ def get_build_history(request, page):
     end = page * one_page_count
 
     # 当前页码的返回数据集
-    job_query = BuildHistory.objects.all().order_by('-date')[start: end]
+    job_query = BuildHistory.objects.exclude(detail='').order_by('-date')[start: end]
     jobs = []
     for job_obj in job_query:
         job = {}
@@ -451,7 +497,7 @@ def get_build_history(request, page):
         job['detail'] = job_obj.detail
         jobs.append(job)
 
-    paginator = Paginator(BuildHistory.objects.all(), one_page_count)
+    paginator = Paginator(BuildHistory.objects.exclude(detail=''), one_page_count)
     # 页码处理(页面最多只显示出5个页码)
     # 1.总页数不足5页，显示所有页码
     # 2.当前页是前3页，显示1-5页
@@ -470,7 +516,104 @@ def get_build_history(request, page):
     return render_mako_context(request, '/home_application/history.html',
                                {"now_page": page, "jobs": jobs, "pages": pages, 'last_page': paginator.num_pages})
 
+
 def empty_job(request):
     global JOBS
     JOBS = []
     return JsonResponse({"code": "0", "msg": "清除成功"})
+
+# 发布
+
+# def tasks(request, page):
+#     # 每页显示多少条数据
+#     one_page_count = 10
+#     if not page:
+#         page = 1
+#
+#     page = int(page)
+#     start = (page - 1) * one_page_count
+#     end = page * one_page_count
+#
+#     # 当前页码的返回数据集
+#     job_query = BuildHistory.objects.filter(is_release=0).order_by('date')[start: end]
+#     jobs = []
+#     for job_obj in job_query:
+#         job = {}
+#         job['name'] = job_obj.tag[:-13]
+#         job['status'] = job_obj.status
+#         job['date'] = str(job_obj.date)
+#         job['detail'] = gitname_taskid.get(job['name'], '')
+#         jobs.append(job)
+#
+#     paginator = Paginator(BuildHistory.objects.filter(is_release=0), one_page_count)
+#     # 页码处理(页面最多只显示出5个页码)
+#     # 1.总页数不足5页，显示所有页码
+#     # 2.当前页是前3页，显示1-5页
+#     # 3.当前页是后3页，显示后5页
+#     # 4.其他情况，显示当前页的前2页，当前页，当前页后2页
+#     if paginator.num_pages < 5:
+#         pages = range(1, paginator.num_pages + 1)
+#     elif page <= 3:
+#         pages = range(1, 6)
+#     elif paginator.num_pages - page <= 2:
+#         pages = range(paginator.num_pages - 4, paginator.num_pages + 1)
+#
+#     else:
+#         pages = range(page - 2, page + 3)
+#
+#     return render_mako_context(request, '/home_application/tasks.html',
+#                                {"now_page": page, "jobs": jobs, "pages": pages, 'last_page': paginator.num_pages})
+#
+#
+# def script(request, task):
+#     app_id = gitname_taskid.get(task, [''])[0]
+#     if app_id:
+#         task_id_list = gitname_taskid.get(task)[1]
+#         scripts = []
+#         for task_id in task_id_list:
+#             params = {
+#                 "app_code": "log",
+#                 "app_secret": "ac130ba1-27b9-4187-b534-fc6f3101f765",
+#                 'app_id': 4,
+#                 "username": "admin",
+#                 "task_id": task_id
+#             }
+#             result = requests.post('http://paas1.shitou.local/api/c/compapi/job/get_task_detail/',
+#                                    data=json.dumps(params))
+#             result = json.loads(result.text)
+#             name = result['data']['name']
+#             step = len(result['data']['nmStepBeanList'])
+#             task_id = result['data']['id']
+#             app_id = result['data']['appId']
+#             if step >= 3:
+#                 ip = result['data']['nmStepBeanList'][-2]['ipListStatus'][0]['ip']
+#                 ip = ip_change[ip]
+#             else:
+#                 ip = result['data']['nmStepBeanList'][-1]['ipListStatus'][0]['ip']
+#             scripts.append({'name': name, 'step': step, 'ip': ip, 'id': task_id, 'app_id': app_id})
+#
+#         return render_mako_context(request, '/home_application/script.html', {'scripts': scripts})
+#
+#
+# # 发布
+# def release(request):
+#     try:
+#         task_id = request.POST.get('task_id')
+#         app_id = request.POST.get('app_id')
+#         params = {
+#             "app_code": "log",
+#             "app_secret": "ac130ba1-27b9-4187-b534-fc6f3101f765",
+#             "username": "admin",
+#             'app_id': app_id,
+#             'task_id': task_id,
+#         }
+#
+#         result = requests.post('http://paas1.shitou.local/api/c/compapi/job/execute_task/', data=json.dumps(params))
+#         print(result.text)
+#         result = json.loads(result.text)
+#         instance_id = result['data']['taskInstanceId']
+#         print(instance_id)
+#         url = 'http://job1.shitou.local/?taskInstanceList&appId={}#taskInstanceId={}'.format(app_id, instance_id)
+#         return JsonResponse({'code': 0, 'url': url})
+#     except Exception :
+#         return JsonResponse({'code': 1, 'errsmg': 'bk_tasks err'})

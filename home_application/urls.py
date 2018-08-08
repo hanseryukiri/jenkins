@@ -15,15 +15,16 @@ from django.conf.urls import patterns
 urlpatterns = patterns(
     'home_application.views',
     (r'^upload', 'recv'),
-    # (r'^index/$', 'index'),
     (r'^jobs/$', 'jobs'),
     (r'^build$', 'build'),
     (r'^del$', 'del_job'),
     (r'^status$', 'get_status'),
     (r'^edit$', 'edit'),
     (r'^empty', 'empty_job'),
+    # (r'^bk_tasks', 'bk_tasks'),
+    # (r'^tasks/(.*)', 'tasks'),
+    # (r'^script/(.*)', 'script'),
     (r'^history/(.*)', 'get_build_history'),
     (r'^$', 'index'),
-    (r'^dev-guide/$', 'dev_guide'),
-    (r'^contactus/$', 'contactus'),
+
 )
