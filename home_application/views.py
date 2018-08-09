@@ -205,6 +205,7 @@ def handle_xlsx(job_xlsx):
         date = datetime.datetime.strptime(date, '%Y/%m/%d/%M/%H/%S')
         for x in range(x + 1, nrows):
             node_name = table.cell(x, y).value
+            task_name = re.match('(.*?)_', node_name).group(1)
             context = {
                 'num': 1,
                 'name': node_name,
@@ -212,7 +213,8 @@ def handle_xlsx(job_xlsx):
                 'detail': '',
                 'date': date,
                 'status': '',
-                'is_release': 0
+                'is_release': 0,
+                'task_name': task_name
             }
             BuildHistory.objects.create(**context)
 
@@ -373,10 +375,10 @@ def set_expire_time():
 
 
 def build(request):
-    job_index = int(request.POST.get('job_index'))
+    job_index = request.POST.get('job_index')
     # 如果获取到 job_index 则是单独点击构建
     if job_index:
-        job = JOBS[job_index]
+        job = JOBS[int(job_index)]
         # 构建
         result = build_job_url(job)
         # 构建结束之后判断构建成功与否
