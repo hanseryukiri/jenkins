@@ -152,6 +152,7 @@ def handle_xlsx(job_xlsx):
             tag = table.cell(x, y).value
             num = table.cell(x, y + 5).value
             # print(tag)
+            server_name = re.match('(.*?)_', tag).group(1)
             # 对master作特殊判断
             if tag == 'master':
                 app_name = table.cell(x, y - 3).value
@@ -164,7 +165,7 @@ def handle_xlsx(job_xlsx):
                            }
                 job['task_name'] = app_name
             # 对irm作特殊判断
-            elif tag[:-13] == 'irm':
+            elif server_name == 'irm':
                 app_name = table.cell(x, y - 3).value
                 print(app_name)
                 # 如果是irm-task
@@ -172,26 +173,26 @@ def handle_xlsx(job_xlsx):
                     job = {'name': 'irm-job-pro', 'tag': tag, 'status': 'WAIT', 'num': int(num), 'date': '',
                            'task_name': 'irm-task'}
                 else:
-                    job = {'name': gitname_jobname[tag[:-13]], 'tag': tag, 'status': 'WAIT', 'num': int(num),
+                    job = {'name': gitname_jobname[server_name], 'tag': tag, 'status': 'WAIT', 'num': int(num),
                            'date': '', 'task_name': 'irm'}
 
             # 对order作特殊判断
-            elif tag[:-13] == 'order-server':
+            elif server_name == 'order-server':
                 app_name = table.cell(x, y - 3).value
                 # 如果是order-api
                 if 'api' in app_name:
                     job = {'name': 'order-api-build-pro', 'tag': tag, 'status': 'WAIT', 'num': int(num), 'date': '',
                            'task_name': app_name}
                 else:
-                    job = {'name': gitname_jobname[tag[:-13]], 'tag': tag, 'status': 'WAIT', 'num': int(num),
+                    job = {'name': gitname_jobname[server_name], 'tag': tag, 'status': 'WAIT', 'num': int(num),
                            'date': '', 'task_name': 'order-server'}
             else:
                 try:
-                    job = {'name': gitname_jobname[tag[:-13]], 'tag': tag, 'status': 'WAIT', 'num': int(num),
-                           'date': '', 'task_name': tag[:-13]}
+                    job = {'name': gitname_jobname[server_name], 'tag': tag, 'status': 'WAIT', 'num': int(num),
+                           'date': '', 'task_name': server_name}
                 except Exception as e:
                     print(e)
-                    logger.error('{} 未配置到解析字典'.format(tag[:-13]))
+                    logger.error('{} 未配置到解析字典'.format(server_name))
             jobs.append(job)
 
     # 有前端发布
@@ -343,8 +344,9 @@ def recv(request):
             num = JOBS[-1]['num'] + 1
         else:
             num = 1
-        job = {'name': gitname_jobname[tag[:-13]], 'tag': tag, 'status': 'WAIT', 'num': int(num), 'date': '',
-               'task_name': tag[:-13]}
+        server_name = re.match('(.*?)_', tag).group(1)
+        job = {'name': gitname_jobname[server_name], 'tag': tag, 'status': 'WAIT', 'num': int(num), 'date': '',
+               'task_name': server_name}
         JOBS.append(job)
         return redirect(jobs)
     else:
