@@ -25,6 +25,6 @@ urlpatterns = patterns(
     # (r'^tasks/(.*)', 'tasks'),
     # (r'^script/(.*)', 'script'),
     (r'^history/(.*)', 'get_build_history'),
-    (r'^$', 'index'),
+    (r'^$', 'jobs'),
 
 )

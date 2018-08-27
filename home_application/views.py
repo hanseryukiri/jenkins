@@ -27,12 +27,8 @@ from common.mymako import render_mako_context
 
 from .models import BuildHistory
 from .job_info import *
+from bk_tasks.views import TASKS
 
-# logger.basicConfig(level=logger.INFO,
-#                     format='%(asctime)s %(filename)s[line:%(lineno)d] %(levelname)s %(message)s',
-#                     datefmt='%a, %d %b %Y %H:%M:%S',
-#                     filename=logger_PATH,
-#                     filemode='w')
 logger = logging.getLogger('root')
 
 gitname_jobname = {
@@ -68,7 +64,7 @@ gitname_jobname = {
     'invstone-channel': 'pro-bms-channel',
     'institution-bms-v2': 'institution-bms',
     'institution-bms': 'institution-bms',
-    'invstone-dbei-businessapi': 'filter',
+    'invstone-dbei-businessapi': 'dbei-businessapi',
     'invstone-seo': 'new-product-invstone-seo',
     'integral-market': 'integral-market',
     'quartz': 'new-product-job',
