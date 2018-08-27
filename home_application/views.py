@@ -350,6 +350,8 @@ def recv(request):
 
 
 def index(request):
+    if JOBS:
+        return redirect(jobs)
     return render_mako_context(request, '/home_application/base.html')
 
 
