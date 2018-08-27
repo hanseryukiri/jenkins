@@ -27,7 +27,7 @@ from common.mymako import render_mako_context
 
 from .models import BuildHistory
 from .job_info import *
-from bk_tasks.views import TASKS
+
 
 logger = logging.getLogger('root')
 
