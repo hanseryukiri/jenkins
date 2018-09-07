@@ -12,8 +12,6 @@ import re
 import time
 import sys
 import logging
-import json
-import requests
 
 reload(sys)
 sys.setdefaultencoding('utf-8')
@@ -27,6 +25,9 @@ from common.mymako import render_mako_context
 
 from .models import BuildHistory
 from .job_info import *
+
+EXPIRE_TIME = None
+from bk_tasks.views import TASKS, build_task
 
 
 logger = logging.getLogger('root')
@@ -95,7 +96,7 @@ gitname_jobname = {
     'huishi-server': 'huishi-server',
 }
 
-EXPIRE_TIME = None
+
 
 
 def home(request):
@@ -193,16 +194,17 @@ def handle_xlsx(job_xlsx):
 
     # 有前端发布
     if len(data.sheets()) == 3:
+        print('-----------')
         table = data.sheets()[2]
         # 获取行数和列数
         nrows = table.nrows
         ncols = table.ncols
-        x, y = get_x_y(table, u'发布版本', nrows, ncols)
+        x, y = get_x_y(table, u'应用名称', nrows, ncols)
         date = '2222/12/31/00/00/00'
         date = datetime.datetime.strptime(date, '%Y/%m/%d/%M/%H/%S')
         for x in range(x + 1, nrows):
             node_name = table.cell(x, y).value
-            task_name = re.match('(.*?)_', node_name).group(1)
+            # task_name = re.match('(.*?)_', node_name).group(1)
             context = {
                 'num': 1,
                 'name': node_name,
@@ -211,9 +213,12 @@ def handle_xlsx(job_xlsx):
                 'date': date,
                 'status': '',
                 'is_release': 0,
-                'task_name': task_name
+                'task_name': node_name
             }
-            BuildHistory.objects.create(**context)
+            result = BuildHistory.objects.create(**context)
+            # print(result)
+            # print(result.name)
+            build_task(result)
 
     return jobs
 
@@ -221,7 +226,7 @@ def handle_xlsx(job_xlsx):
 def get_x_y(table, flag, nrows, ncols):
     for x in range(nrows):
         for y in range(ncols):
-            if table.cell(x, y).value == flag:
+            if table.cell(x, y).value.strip() == flag:
                 return x, y
 
 
@@ -311,7 +316,9 @@ def build_job_url(job):
         'is_release': job['is_release'],
         'task_name': job['task_name']
     }
-    BuildHistory.objects.create(**context)
+    result = BuildHistory.objects.create(**context)
+    build_task(result)
+
     return result
 
 

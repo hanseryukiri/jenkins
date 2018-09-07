@@ -13,11 +13,31 @@ from django.http import JsonResponse
 from common.mymako import render_mako_context
 from home_application.job_info import gitname_taskid, ip_change
 from home_application.models import BuildHistory
-from home_application.views import EXPIRE_TIME
-from .models import ReleaseHistory
+
+from .models import ReleaseHistory, ScriptData
 
 #
 TASKS = {}
+
+
+def build_task(task_obj):
+    task = {}
+    task['name'] = task_obj.task_name
+    # 0代表未执行
+    task['status'] = '0'
+    task['date'] = str(task_obj.date)
+    script_list = gitname_taskid.get(task['name'], ['', ''])[1]
+    if script_list:
+        scripts = {}
+        for script_id in script_list:
+            scripts[str(script_id)] = {'status': '', 'start_time': '', 'end_time': '', 'detail': ''}
+        task['scripts'] = scripts
+        task['app_id'] = gitname_taskid.get(task['name'])[0]
+        task['id'] = task_obj.id
+        TASKS[task['name']] = task
+
+
+from home_application.views import EXPIRE_TIME
 
 
 def tasks(request, page):
@@ -79,43 +99,80 @@ def tasks(request, page):
                                {"now_page": page, "tasks": tasks, "pages": pages, 'last_page': paginator.num_pages})
 
 
+def exeTime(func):
+    def newFunc(*args, **args2):
+        t0 = time.time()
+
+        back = func(*args, **args2)
+
+        print("@%.3fs taken for {%s} ==========================" % (time.time() - t0, func.__name__))
+        return back
+
+    return newFunc
+
+
 # 显示作业含有的脚本列表
+@exeTime
 def script(request, task_name):
     app_id = gitname_taskid.get(task_name, [''])[0]
     if app_id:
         script_id_list = gitname_taskid.get(task_name)[1]
         scripts = []
         for script in script_id_list:
-            params = {
-                "app_code": "log",
-                "app_secret": "ac130ba1-27b9-4187-b534-fc6f3101f765",
-                'app_id': 4,
-                "username": "admin",
-                "task_id": script
-            }
-            result = requests.post('http://paas1.shitou.local/api/c/compapi/job/get_task_detail/',
-                                   data=json.dumps(params))
-            result = json.loads(result.text)
-            name = result['data']['name']
-            step = len(result['data']['nmStepBeanList'])
-            script_id = str(result['data']['id'])
-            app_id = result['data']['appId']
+            # 先从数据库里取数据
+            try:
+                result = ScriptData.objects.get(script_id=script)
+                name = result.name
+                step = result.step
+                script_id = result.script_id
+                app_id = result.app_id
+                ip = result.ip
+
+            except Exception as e:
+            # 没有再调蓝鲸接口获取信息
+                params = {
+                    "app_code": "log",
+                    "app_secret": "ac130ba1-27b9-4187-b534-fc6f3101f765",
+                    'app_id': 4,
+                    "username": "admin",
+                    "task_id": script
+                }
+                result = requests.post('http://paas1.shitou.local/api/c/compapi/job/get_task_detail/',
+                                       data=json.dumps(params))
+                result = json.loads(result.text)
+
+                name = result['data']['name']
+                step = len(result['data']['nmStepBeanList'])
+                script_id = str(result['data']['id'])
+                app_id = result['data']['appId']
+                if step >= 3:
+                    ip = result['data']['nmStepBeanList'][-2]['ipListStatus'][0]['ip']
+                    try:
+                        ip = ip_change[ip]
+                    except Exception as e:
+                        pass
+                else:
+                    ip = result['data']['nmStepBeanList'][-1]['ipListStatus'][0]['ip']
+
+                # 保存脚本信息到数据库
+                context = {
+                    'script_id': script_id,
+                    'step': step,
+                    'ip': ip,
+                    'name': name,
+                    'app_id': app_id,
+                }
+                ScriptData.objects.create(**context)
+
             start_time = TASKS[task_name]['scripts'][script_id]['start_time']
             end_time = TASKS[task_name]['scripts'][script_id]['end_time']
             status = TASKS[task_name]['scripts'][script_id]['status']
             detail = TASKS[task_name]['scripts'][script_id]['detail']
-            if step >= 3:
-                ip = result['data']['nmStepBeanList'][-2]['ipListStatus'][0]['ip']
-                try:
-                    ip = ip_change[ip]
-                except Exception as e:
-                    pass
-            else:
-                ip = result['data']['nmStepBeanList'][-1]['ipListStatus'][0]['ip']
             scripts.append(
                 {'name': name, 'step': step, 'ip': ip, 'id': script_id, 'app_id': app_id, 'task_name': task_name,
                  'start_time': start_time, 'end_time': end_time, 'status': status, 'detail': detail})
             sorted(scripts, key=lambda x: x['step'])
+
         return render_mako_context(request, '/home_application/script.html', {'scripts': scripts})
 
 
@@ -258,5 +315,3 @@ def history(request, page):
 def empty(request):
     TASKS.clear()
     return JsonResponse({"code": "0", "msg": "清除成功"})
-
-

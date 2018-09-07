@@ -26,4 +26,15 @@ class ReleaseHistory(models.Model):
         verbose_name = verbose_name
 
 
+class ScriptData(models.Model):
+    script_id = models.CharField(max_length=10, verbose_name='脚本id')
+    app_id = models.IntegerField(verbose_name='app_id')
+    name = models.CharField(max_length=128, verbose_name='脚本名')
+    step = models.IntegerField(verbose_name='脚本id')
+    ip = models.CharField(max_length=20, verbose_name='服务器ip')
+
+    class Meta(object):
+        db_table = 'script_data'
+        verbose_name = u'脚本信息表'
+        verbose_name = verbose_name
 
