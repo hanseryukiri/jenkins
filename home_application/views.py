@@ -316,8 +316,8 @@ def build_job_url(job):
         'is_release': job['is_release'],
         'task_name': job['task_name']
     }
-    result = BuildHistory.objects.create(**context)
-    build_task(result)
+    obj = BuildHistory.objects.create(**context)
+    build_task(obj)
 
     return result
 
