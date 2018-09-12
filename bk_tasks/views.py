@@ -315,3 +315,10 @@ def history(request, page):
 def empty(request):
     TASKS.clear()
     return JsonResponse({"code": "0", "msg": "清除成功"})
+
+
+def check(request):
+    context = {
+
+    }
+    requests.post()
