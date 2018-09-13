@@ -319,6 +319,7 @@ def empty(request):
 
 def check(request):
     context = {'task': [x for x in TASKS.keys()]}
+    context = json.dumps(context)
     print(context)
     data = requests.post('http://101.37.202.38:8000/check', data=context)
     print(data.content)
