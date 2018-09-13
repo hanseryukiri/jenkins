@@ -1,17 +1,20 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <meta charset="utf-8" />
+    <meta charset="utf-8"/>
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title></title>
     <!-- 若您需要使用Kendo UI Professional，请联系版权人获得合法的授权或许可。 -->
-    
+
     <!-- Bootstrap css -->
-    <link href="https://magicbox.bkclouds.cc/static_api/v3/assets/bootstrap-3.3.4/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://magicbox.bkclouds.cc/static_api/v3/assets/bootstrap-3.3.4/css/bootstrap.min.css"
+          rel="stylesheet">
     <!-- kendo ui css -->
-    <link href="https://magicbox.bkclouds.cc/static_api/v3/assets/kendoui-2015.2.624/styles/kendo.common.min.css" rel="stylesheet">
-    <link href="https://magicbox.bkclouds.cc/static_api/v3/assets/kendoui-2015.2.624/styles/kendo.default.min.css" rel="stylesheet">
+    <link href="https://magicbox.bkclouds.cc/static_api/v3/assets/kendoui-2015.2.624/styles/kendo.common.min.css"
+          rel="stylesheet">
+    <link href="https://magicbox.bkclouds.cc/static_api/v3/assets/kendoui-2015.2.624/styles/kendo.default.min.css"
+          rel="stylesheet">
     <!-- font-awesome -->
     <link href="https://magicbox.bkclouds.cc/static_api/v3/assets/fontawesome/css/font-awesome.css" rel="stylesheet">
     <!--蓝鲸提供的公用样式库 -->
@@ -31,147 +34,154 @@
     <!-- 数据埋点统计 -->
     <script src="https://magicbox.bkclouds.cc/static_api/analysis.js"></script>
     <style>
-        .box{
+        .box {
 
             margin: 50px;
         }
-        td{
-           text-align: left;
+
+        td {
+            text-align: left;
         }
     </style>
 </head>
 <body>
-<div class = "box">
-<div class="king-block king-block-bordered">
-  <div class="king-block-header king-gray-light">
-      <h3 class="king-block-title" style="display: inline-block">发布列表</h3>
-      <h3 class="king-block-title" style="display: inline-block">丨</h3>
-      <a href="/package/jobs" class="king-block-title" style="display: inline-block">返回构建</a>
-      <h3 class="king-block-title" style="display: inline-block">丨</h3>
-##       <a href="/package/history" class="king-block-title" style="display: inline-block">构建历史</a>
-##       <h3 class="king-block-title" style="display: inline-block">丨</h3>
+<div class="box">
+    <div class="king-block king-block-bordered">
+        <div class="king-block-header king-gray-light">
+            <h3 class="king-block-title" style="display: inline-block">发布列表</h3>
+            <h3 class="king-block-title" style="display: inline-block">丨</h3>
+            <a href="/package/jobs" class="king-block-title" style="display: inline-block">返回构建</a>
+            <h3 class="king-block-title" style="display: inline-block">丨</h3>
+            ##       <a href="/package/history" class="king-block-title" style="display: inline-block">构建历史</a>
+            ##       <h3 class="king-block-title" style="display: inline-block">丨</h3>
       <a href="/bk_tasks/history" class="king-block-title" style="display: inline-block">发布历史</a>
-      <button onclick="empty()" style="margin-left: 80%">清空</button>
-  </div>
-  <div class="king-block-content" style="text-align:center">
-      <table id="table2_demo1" class="table table-bordered table-hover">
-        <thead>
-          <tr>
-            <th>服务名</th>
-            <th>构建时间</th>
-            <th>执行状态</th>
-            <th>详情</th>
-          </tr>
-        </thead>
-        <tbody>
-        %for task in tasks :
+            <button onclick="checkout()" style="margin-left: 75%">检查</button>
+            <button onclick="empty()" style="margin-left: 25px">清空</button>
+        </div>
+        <div class="king-block-content" style="text-align:center">
+            <table id="table2_demo1" class="table table-bordered table-hover">
+                <thead>
+                <tr>
+                    <th>服务名</th>
+                    <th>构建时间</th>
+                    <th>执行状态</th>
+                    <th>详情</th>
+                </tr>
+                </thead>
+                <tbody>
+                    %for task in tasks :
 
-        <tr>
-            <td>${ task['name'] }</td>
-            <td>${ task['date'] }</td>
-            %if task['status']  == '0':
-                <td><span  class="label label-default">待发布</span></td>
-            %elif task['status']  == '2':
-                <td><span  class="label label-success">发布成功</span></td>
-            %elif task['status']  == '1':
-                <td><span  class="label label-info">发布中</span></td>
-            %elif  task['status']  == '3':
-                <td><span  class="label label-danger">发布失败</span></td>
-            %endif
+                        <tr>
+                            <td>${ task['name'] }</td>
+                            <td>${ task['date'] }</td>
+                            %if task['status']  == '0':
+                                <td><span class="label label-default">待发布</span></td>
+                            %elif task['status']  == '2':
+                                <td><span class="label label-success">发布成功</span></td>
+                            %elif task['status']  == '1':
+                                <td><span class="label label-info">发布中</span></td>
+                            %elif  task['status']  == '3':
+                                <td><span class="label label-danger">发布失败</span></td>
+                            %endif
 
-            <td>
-                <a href="/bk_tasks/script/${ task['name'] }"> 发布 </a>
-            </td>
-          </tr>
+                            <td>
+                                <a href="/bk_tasks/script/${ task['name'] }"> 发布 </a>
+                            </td>
+                        </tr>
 
-        %endfor
+                    %endfor
 
-        </tbody>
-      </table>
-        <div id="paginator" style="display: inline-block" now_page="${now_page}" last_page="${last_page}">
-            <ul class="pagination" style="margin: 0">
-                <li>
-                <a href="javascript:;" aria-label="Previous">
-                    <span aria-hidden="true" onclick="frist()"><<</span>
-                </a>
-            </li>
-            <li>
-                <a href="javascript:;" aria-label="Previous" onclick="prev(this)">
-                    <span aria-hidden="true"><</span>
-                </a>
-            </li>
-                %for page in pages:
-                    <li><a href="javascript:;" onclick="page(this)" id="${page}" >${page}</a></li>
-                %endfor
+                </tbody>
+            </table>
+            <div id="paginator" style="display: inline-block" now_page="${now_page}" last_page="${last_page}">
+                <ul class="pagination" style="margin: 0">
+                    <li>
+                        <a href="javascript:;" aria-label="Previous">
+                            <span aria-hidden="true" onclick="frist()"><<</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="javascript:;" aria-label="Previous" onclick="prev(this)">
+                            <span aria-hidden="true"><</span>
+                        </a>
+                    </li>
+                    %for page in pages:
+                        <li><a href="javascript:;" onclick="page(this)" id="${page}">${page}</a></li>
+                    %endfor
 
-            <li>
-                <a href="javascript:;" aria-label="Next" onclick="next()">
-                    <span aria-hidden="true">></span>
-                </a>
-            </li>
-            <li>
-                <a href="javascript:;" aria-label="Next">
-                    <span aria-hidden="true" onclick="last()">>></span>
-                </a>
-            </li>
-        </ul>
+                    <li>
+                        <a href="javascript:;" aria-label="Next" onclick="next()">
+                            <span aria-hidden="true">></span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="javascript:;" aria-label="Next">
+                            <span aria-hidden="true" onclick="last()">>></span>
+                        </a>
+                    </li>
+                </ul>
+            </div>
         </div>
     </div>
-  </div>
 </div>
 
 
 </body>
 <script type="text/javascript">
 
-   $(function () {
-       var now_page = $('#paginator').attr('now_page')
-       $('#' + now_page).css('color', 'black')
-   })
+    $(function () {
+        var now_page = $('#paginator').attr('now_page')
+        $('#' + now_page).css('color', 'black')
+    })
 
-   function prev(th) {
-       if ($('#paginator').attr('now_page') == 1){
-           alert('已经是第一页了')
-       }else{
-           var page = $('#paginator').attr('now_page') - 1
-           var url = page
-           location.href = url
-       }
+    function prev(th) {
+        if ($('#paginator').attr('now_page') == 1) {
+            alert('已经是第一页了')
+        } else {
+            var page = $('#paginator').attr('now_page') - 1
+            var url = page
+            location.href = url
+        }
 
 
+    }
 
-   }
+    function next(th) {
+        if ($('#paginator').attr('now_page') == $('#paginator').attr('last_page')) {
+            alert('已经是最后一页了')
+        } else {
+            var page = parseInt($('#paginator').attr('now_page')) + 1
+            var url = page
+            location.href = url
+        }
 
-   function next(th) {
-       if ($('#paginator').attr('now_page') == $('#paginator').attr('last_page')){
-           alert('已经是最后一页了')
-       }else{
-           var page = parseInt($('#paginator').attr('now_page')) + 1
-           var url = page
-           location.href = url
-       }
+    }
 
-   }
+    function page(th) {
+        var page = $(th).html()
+        var url = page
+        location.href = url
+    }
 
-   function page(th) {
-       var page = $(th).html()
-       var url = page
-       location.href = url
-   }
+    function frist() {
+        location.href = '1'
+    }
 
-   function frist() {
-       location.href = '1'
-   }
-   
-   function last() {
-       var last_page = $('#paginator').attr('last_page')
-       location.href = last_page
-   }
+    function last() {
+        var last_page = $('#paginator').attr('last_page')
+        location.href = last_page
+    }
 
-   function empty() {
-       $.get('/bk_tasks/empty',function () {
+    function empty() {
+        $.get('/bk_tasks/empty', function () {
             location.reload()
-       })
-   }
+        })
+    }
+
+    function checkout() {
+        $.get('/bk_tasks/check', function () {
+
+        })
+    }
 </script>
 </html>

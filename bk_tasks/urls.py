@@ -17,6 +17,7 @@ urlpatterns = patterns(
     (r'^release', 'release'),
     (r'^status', 'status'),
     (r'^empty', 'empty'),
+    (r'^check', 'check'),
     (r'^tasks/(.*)', 'tasks'),
     (r'^script/(.*)', 'script'),
     (r'^history/(.*)', 'history'),
