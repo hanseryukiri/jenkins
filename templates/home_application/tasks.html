@@ -179,8 +179,8 @@
     }
 
     function checkout() {
-        $.get('/bk_tasks/check', function () {
-
+        $.get('/bk_tasks/check', function (data) {
+            alert(data)
         })
     }
 </script>

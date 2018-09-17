@@ -204,6 +204,7 @@ def handle_xlsx(job_xlsx):
         date = datetime.datetime.strptime(date, '%Y/%m/%d/%M/%H/%S')
         for x in range(x + 1, nrows):
             node_name = table.cell(x, y).value
+            node_name = re.sub('\s', '-', node_name)
             # task_name = re.match('(.*?)_', node_name).group(1)
             context = {
                 'num': 1,
