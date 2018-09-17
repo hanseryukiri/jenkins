@@ -129,7 +129,7 @@ def script(request, task_name):
                 ip = result.ip
 
             except Exception as e:
-            # 没有再调蓝鲸接口获取信息
+                # 没有再调蓝鲸接口获取信息
                 params = {
                     "app_code": "log",
                     "app_secret": "ac130ba1-27b9-4187-b534-fc6f3101f765",
@@ -322,4 +322,5 @@ def check(request):
     print(context)
     data = requests.post('http://101.37.202.38:8000/check', data=context)
     print(data.content)
-    return JsonResponse({'data': data.content})
+    data = eval(data.content)
+    return JsonResponse({'data': data})
