@@ -323,4 +323,8 @@ def check(request):
     data = requests.post('http://101.37.202.38:8000/check', data=context)
     print(data.content)
     data = eval(data.content)
-    return JsonResponse({'data': data})
+    server_list = []
+    for server , server_info in data.items():
+        for ip, server_status in server_info.items():
+            server_list.append([server, ip, server_status['status'], server_status['time']])
+    return JsonResponse({'data': server_list})
