@@ -171,7 +171,7 @@ def script(request, task_name):
             scripts.append(
                 {'name': name, 'step': step, 'ip': ip, 'id': script_id, 'app_id': app_id, 'task_name': task_name,
                  'start_time': start_time, 'end_time': end_time, 'status': status, 'detail': detail})
-            sorted(scripts, key=lambda x: x['step'], reverse=True)
+            scripts = sorted(scripts, key=lambda x: x['step'], reverse=True)
 
         return render_mako_context(request, '/home_application/script.html', {'scripts': scripts})
 
