@@ -5,20 +5,18 @@ import re
 import time
 from datetime import datetime
 import requests
-import xlrd
+import logging
 
 from django.core.paginator import Paginator
 from django.http import JsonResponse
-
 from common.mymako import render_mako_context
 from home_application.job_info import gitname_taskid, ip_change
 from home_application.models import BuildHistory
-
 from .models import ReleaseHistory, ScriptData
 
 #
 TASKS = {}
-
+logger = logging.getLogger('root')
 
 def build_task(task_obj):
     task = {}
@@ -204,6 +202,7 @@ def release(request):
     start_time = str(datetime.now())[:-7]
     TASKS[task_name]['scripts'][script_id]['start_time'] = start_time
     TASKS[task_name]['scripts'][script_id]['detail'] = url
+    logger.info('作业 instance_id:{}'.format(instance_id))
     return JsonResponse({'code': 0, 'url': url, 'instance_id': instance_id, 'start_time': start_time})
 
 
@@ -222,6 +221,8 @@ def status(request):
         result = requests.post('http://paas1.shitou.local/api/c/compapi/job/get_task_ip_log/', data=json.dumps(params))
         result = json.loads(result.text)
         # 这里需要遍历 每一步 看结果
+        if not result.get('data'):
+            logger.error('蓝鲸查询作业接口返回为空')
         for step in result['data']:
             stepAnalyseResult = step['stepAnalyseResult']
             if stepAnalyseResult and stepAnalyseResult[0]['resultType'] not in (5, 7, 9):
