@@ -325,7 +325,12 @@ def check(request):
     print(data.content)
     data = eval(data.content)
     server_list = []
-    for server , server_info in data.items():
+    for server, server_info in data.items():
         for ip, server_status in server_info.items():
             server_list.append([server, ip, server_status['status'], server_status['time']])
+
+    # 校验接口未配置解析字典的服务
+    for key in TASKS.keys():
+        if 'NODE' not in key and key not in data.keys():
+            server_list.append([key, 'null', 'null', 'null'])
     return JsonResponse({'data': server_list})
