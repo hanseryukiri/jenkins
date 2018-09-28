@@ -223,51 +223,53 @@ def status(request):
         # 这里需要遍历 每一步 看结果
         if not result.get('data'):
             logger.error('蓝鲸查询作业接口返回为空')
-        for step in result['data']:
-            stepAnalyseResult = step['stepAnalyseResult']
-            if stepAnalyseResult and stepAnalyseResult[0]['resultType'] not in (5, 7, 9):
-                return JsonResponse({'code': -1, 'status': stepAnalyseResult[0]['resultTypeText']})
-        try:
-            # 当还没执行到最后一步的的时候 获取'ipLogContent'会抛出异常
-            end_time = result['data'][-1]['stepAnalyseResult'][0]['ipLogContent'][0]['endTime']
-            if end_time:
-                TASKS[task_name]['scripts'][script_id]['end_time'] = end_time
-                status = result['data'][-1]['stepAnalyseResult'][0]['resultTypeText']
-                status_flag = result['data'][-1]['stepAnalyseResult'][0]['resultType']
-                # 执行结束后修改缓存中的状态
-                TASKS[task_name]['scripts'][script_id]['status'] = status_flag
-                # 如果脚本结束的时候的结束状态不是9 即脚本执行失败 修改任务状态为执行失败 3
-                if status_flag is not 9:
-                    TASKS[task_name]['status'] = '3'
-                else:
-                    # 遍历该 task 的 script 查看执行状态
-                    for script_info in TASKS[task_name]['scripts'].values():
-                        # 如果非 9 则意味着还存在 script 未发布 修改 task 状态为 1
-                        if script_info['status'] is not 9:
-                            TASKS[task_name]['status'] = '1'
-                            break
-                        # 否则则发布成功 发布成功
-                        else:
-                            # 修改缓存状态为 (2 已完成)
-                            TASKS[task_name]['status'] = '2'
-                            object = BuildHistory.objects.get(id=TASKS[task_name]['id'])
-                            object.is_release = 1
-                            object.save()
-                # 发布完成之后记录发布历史到数据库
-                # print(TASKS[task_name]['scripts'][script_id])
-                context = {
-                    'script_id': script_id,
-                    'name': task_name,
-                    'start_time': TASKS[task_name]['scripts'][script_id]['start_time'],
-                    'end_time': TASKS[task_name]['scripts'][script_id]['end_time'],
-                    'detail': TASKS[task_name]['scripts'][script_id]['detail'],
-                    'status': TASKS[task_name]['scripts'][script_id]['status'],
-                }
-                ReleaseHistory.objects.create(**context)
-                return JsonResponse({'code': 0, 'end_time': end_time, 'status': status})
-        except Exception as e:
-            pass
+        if result.get('data'):
+            for step in result['data']:
+                stepAnalyseResult = step['stepAnalyseResult']
+                if stepAnalyseResult and stepAnalyseResult[0]['resultType'] not in (5, 7, 9):
+                    return JsonResponse({'code': -1, 'status': stepAnalyseResult[0]['resultTypeText']})
+            try:
+                # 执行到最后一步的的时候result才有'ipLogContent' 否则抛出异常
+                end_time = result['data'][-1]['stepAnalyseResult'][0]['ipLogContent'][0]['endTime']
+                if end_time:
+                    TASKS[task_name]['scripts'][script_id]['end_time'] = end_time
+                    status = result['data'][-1]['stepAnalyseResult'][0]['resultTypeText']
+                    status_flag = result['data'][-1]['stepAnalyseResult'][0]['resultType']
+                    # 执行结束后修改缓存中的状态
+                    TASKS[task_name]['scripts'][script_id]['status'] = status_flag
+                    # 如果脚本结束的时候的结束状态不是9 即脚本执行失败 修改任务状态为执行失败 3
+                    if status_flag is not 9:
+                        TASKS[task_name]['status'] = '3'
+                    else:
+                        # 遍历该 task 的 script 查看执行状态
+                        for script_info in TASKS[task_name]['scripts'].values():
+                            # 如果非 9 则意味着还存在 script 未发布 修改 task 状态为 1
+                            if script_info['status'] is not 9:
+                                TASKS[task_name]['status'] = '1'
+                                break
+                            # 否则则发布成功 发布成功
+                            else:
+                                # 修改缓存状态为 (2 已完成)
+                                TASKS[task_name]['status'] = '2'
+                                object = BuildHistory.objects.get(id=TASKS[task_name]['id'])
+                                object.is_release = 1
+                                object.save()
+                    # 发布完成之后记录发布历史到数据库
+                    # print(TASKS[task_name]['scripts'][script_id])
+                    context = {
+                        'script_id': script_id,
+                        'name': task_name,
+                        'start_time': TASKS[task_name]['scripts'][script_id]['start_time'],
+                        'end_time': TASKS[task_name]['scripts'][script_id]['end_time'],
+                        'detail': TASKS[task_name]['scripts'][script_id]['detail'],
+                        'status': TASKS[task_name]['scripts'][script_id]['status'],
+                    }
+                    ReleaseHistory.objects.create(**context)
+                    return JsonResponse({'code': 0, 'end_time': end_time, 'status': status})
+            except Exception as e:
+                pass
         time.sleep(5)
+        logger.info('等待5s')
 
 
 def history(request, page):
