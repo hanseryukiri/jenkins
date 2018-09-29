@@ -94,6 +94,8 @@ gitname_jobname = {
     'callback.transaction': 'new-shb-product-上海银行交易回盘(callback.transaction)',
     'web.api': 'new-shb-product-app.webserver',
     'huishi-server': 'huishi-server',
+    'prepare.schedule': 'prepare.schedule',
+
 }
 
 
