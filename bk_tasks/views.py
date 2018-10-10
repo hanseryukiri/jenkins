@@ -181,6 +181,8 @@ def release(request):
     script_id = str(request.POST.get('task_id'))
     app_id = request.POST.get('app_id')
     task_name = request.POST.get('task_name')
+    if TASKS[task_name]['scripts'][script_id]['status'] == 7:
+        return JsonResponse({'code': -1, 'msg': '脚本已经在执行中'})
     params = {
         "app_code": "log",
         "app_secret": "ac130ba1-27b9-4187-b534-fc6f3101f765",
@@ -188,7 +190,6 @@ def release(request):
         'app_id': app_id,
         'task_id': script_id,
     }
-
     result = requests.post('http://paas1.shitou.local/api/c/compapi/job/execute_task/', data=json.dumps(params))
 
     result = json.loads(result.text)
