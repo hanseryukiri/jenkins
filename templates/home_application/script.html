@@ -127,12 +127,14 @@
                         $(ths).parent('td').siblings().eq(4).text(data.end_time)
                         $(ths).parent('td').siblings().eq(5).html('<span class="label bk-text-button" style="color: #46c37b">'+ data.status +'</span>')
 
+                    }else {
+                               $(ths).parent('td').siblings().eq(5).html('<span class="label bk-text-button" style="color: #d26a5c">'+ data.status +'</span>')
+                            }
+
+                })
+
             }else {
-                       $(ths).parent('td').siblings().eq(5).html('<span class="label bk-text-button" style="color: #d26a5c">'+ data.status +'</span>')
-                    }
-
-        })
-
+                alert(data.msg)
             }
         })
 
