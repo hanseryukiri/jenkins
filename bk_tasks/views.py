@@ -198,9 +198,9 @@ def release(request):
 
     url = 'http://job1.shitou.local/?taskInstanceList&appId={}#taskInstanceId={}'.format(app_id, instance_id)
 
+    logger.info('执行作业[{}], 蓝鲸返回response: {} '.format(task_name, result))
     # 执行之后把正在执行的脚本信息添加到缓存
     TASKS[task_name]['status'] = '1'
-
     start_time = str(datetime.now())[:-7]
     TASKS[task_name]['scripts'][script_id]['start_time'] = start_time
     TASKS[task_name]['scripts'][script_id]['detail'] = url
