@@ -32,6 +32,7 @@ from bk_tasks.views import TASKS, build_task
 
 logger = logging.getLogger('root')
 
+# key TAG名(shitou.transaction_201810231608 就是shitou.transaction)  value jenkins项目名
 gitname_jobname = {
     'institution-h5-api': 'institution-h5.api',
     'irm-task': 'irm-job-pro',
@@ -95,6 +96,7 @@ gitname_jobname = {
     'web.api': 'new-shb-product-app.webserver',
     'huishi-server': 'huishi-server',
     'prepare.schedule': 'prepare.schedule',
+    'huishi-schedule': 'huishi-schedule',
 
 }
 
@@ -141,17 +143,20 @@ def handle_xlsx(job_xlsx):
     nrows = table.nrows
     ncols = table.ncols
     # 获取"版本号"这个单元格的坐标
-    x, y = get_x_y(table, u'版本号', nrows, ncols)
+    X, y = get_x_y(table, u'版本号', nrows, ncols)
     # 获取所有版本号
     gitname_tag_list = []
     jobs = []
-    for x in range(x + 1, nrows):
+    num = 0
+    for x in range(X + 1, nrows):
+        # logger.info(x - X)
         if table.cell(x, y).value:
             # print(x, y)
             tag = table.cell(x, y).value
-            num = table.cell(x, y + 5).value
+            # num = table.cell(x, y + 5).value
+            num += 1
             # print(tag)
-            server_name = re.match('(.*?)_', tag).group(1)
+            server_name = str(re.match('(.*?)_', tag).group(1))
             # 对master作特殊判断
             if tag == 'master':
                 app_name = table.cell(x, y - 3).value
@@ -187,10 +192,11 @@ def handle_xlsx(job_xlsx):
                            'date': '', 'task_name': 'order-server'}
             else:
                 try:
+                    logger.info('项目名称为 {}'.format(server_name))
                     job = {'name': gitname_jobname[server_name], 'tag': tag, 'status': 'WAIT', 'num': int(num),
                            'date': '', 'task_name': server_name}
                 except Exception as e:
-                    print(e)
+                    logger.error(e)
                     logger.error('{} 未配置到解析字典'.format(server_name))
             jobs.append(job)
 

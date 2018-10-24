@@ -36,7 +36,8 @@ gitname_taskid = {
     'DB-NODE': [4, [136, 132, 137]],
     'p2p-consumer': [4, [5, 6]],
     'test1': [4, [141]],
-    'HUISHI-NODE': [4, [142]]
+    'HUISHI-NODE': [4, [142]],
+    'huishi-schedule': [4, [143]],
 }
 
 ip_change = {u'10.117.217.176': u'120.26.77.22', u'10.28.14.125': u'118.178.226.113',
