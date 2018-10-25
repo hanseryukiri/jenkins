@@ -101,8 +101,6 @@ gitname_jobname = {
 }
 
 
-
-
 def home(request):
     """
     首页
