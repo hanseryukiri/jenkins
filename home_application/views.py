@@ -205,27 +205,28 @@ def handle_xlsx(job_xlsx):
         # 获取行数和列数
         nrows = table.nrows
         ncols = table.ncols
-        x, y = get_x_y(table, u'应用名称', nrows, ncols)
-        date = '2222/12/31/00/00/00'
-        date = datetime.datetime.strptime(date, '%Y/%m/%d/%M/%H/%S')
-        for x in range(x + 1, nrows):
-            node_name = table.cell(x, y).value
-            node_name = re.sub('\s', '-', node_name)
-            # task_name = re.match('(.*?)_', node_name).group(1)
-            context = {
-                'num': 1,
-                'name': node_name,
-                'tag': node_name,
-                'detail': '',
-                'date': date,
-                'status': '',
-                'is_release': 0,
-                'task_name': node_name
-            }
-            result = BuildHistory.objects.create(**context)
-            # print(result)
-            # print(result.name)
-            build_task(result)
+        if nrows and ncols:
+            x, y = get_x_y(table, u'应用名称', nrows, ncols)
+            date = '2222/12/31/00/00/00'
+            date = datetime.datetime.strptime(date, '%Y/%m/%d/%M/%H/%S')
+            for x in range(x + 1, nrows):
+                node_name = table.cell(x, y).value
+                node_name = re.sub('\s', '-', node_name)
+                # task_name = re.match('(.*?)_', node_name).group(1)
+                context = {
+                    'num': 1,
+                    'name': node_name,
+                    'tag': node_name,
+                    'detail': '',
+                    'date': date,
+                    'status': '',
+                    'is_release': 0,
+                    'task_name': node_name
+                }
+                result = BuildHistory.objects.create(**context)
+                # print(result)
+                # print(result.name)
+                build_task(result)
 
     return jobs
 
@@ -343,7 +344,7 @@ def recv(request):
         try:
             JOBS = handle_xlsx('job.xlsx')
         except Exception as e:
-            print(e)
+            logger.error(e)
             return JsonResponse({"code": "-1", "msg": u"请上传正确的Excel文件"})
         logger.info(u'{} 解析完毕'.format(job_xlsx))
         print(job_xlsx)

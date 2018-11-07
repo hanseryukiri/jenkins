@@ -12,7 +12,7 @@ gitname_taskid = {
     'gateway': [4, [23, 24]],
     'shitou.market': [4, [55, 59]],
     'invstone-bms': [4, [41]],
-    'huishi-api': [4, [130]],
+    'huishi-api': [4, [130, 148]],
     'irm': [5, [66, 67]],
     'quartz': [4, [36, 38]],
     'payment-server': [4, [109]],
@@ -26,7 +26,7 @@ gitname_taskid = {
     'institution.schedule': [4, [110]],
     'callback.transaction': [4, [50, 52]],
     'web.api': [4, [14, 16]],
-    'huishi-server': [4, [129]],
+    'huishi-server': [4, [129, 147]],
     'order-server': [5, [69, 120]],
     'agw': [5, [70]],
     'ecd-server': [5, [135]],
@@ -36,7 +36,7 @@ gitname_taskid = {
     'shitou-db': [4, [136, 132, 137]],
     'p2p-consumer': [4, [5, 6]],
     'test1': [4, [141]],
-    'HUISHI-NODE': [4, [142]],
+    'HUISHI-NODE': [4, [144, 145, 146]],
     'huishi-schedule': [4, [143]],
 }
 
