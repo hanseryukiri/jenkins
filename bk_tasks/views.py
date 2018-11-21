@@ -271,8 +271,8 @@ def status(request):
                     return JsonResponse({'code': 0, 'end_time': end_time, 'status': status})
             except Exception as e:
                 pass
-        time.sleep(5)
-        logger.info('等待5s')
+        time.sleep(3)
+        logger.info('等待3s')
 
 
 def history(request, page):

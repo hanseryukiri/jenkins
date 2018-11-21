@@ -163,8 +163,8 @@
 
     function del(th) {
         var job_name = $(th).parent('td').siblings().eq(1).text();
-
-        $.post('/package/del', {"job_name": job_name}, function (data) {
+        var job_index = $(th).parent('td').parent('tr').index();
+        $.post('/package/del', {"job_name": job_name,'job_index': job_index}, function (data) {
             if (data.code == '0'){
                 // 删除成功
                 if(confirm("确定删除数据")){
@@ -230,7 +230,7 @@
         }
 
     $(function () {
-        setInterval(get_status, 5000);
+        setInterval(get_status, 3000);
 
     })
 

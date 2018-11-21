@@ -210,7 +210,7 @@ def handle_xlsx(job_xlsx):
             date = '2222/12/31/00/00/00'
             date = datetime.datetime.strptime(date, '%Y/%m/%d/%M/%H/%S')
             for x in range(x + 1, nrows):
-                node_name = table.cell(x, y).value
+                node_name = table.cell(x, y).value.strip()
                 node_name = re.sub('\s', '-', node_name)
                 # task_name = re.match('(.*?)_', node_name).group(1)
                 context = {
@@ -435,11 +435,10 @@ def build(request):
 
 
 def del_job(request):
+    job_index = request.POST.get('job_index')
     job_name = request.POST.get('job_name')
-    for job in JOBS:
-        if job['name'] == job_name:
-            JOBS.remove(job)
-            return JsonResponse({"code": "0", "msg": "{} 删除成功".format(job['name'])})
+    del JOBS[int(job_index)]
+    return JsonResponse({"code": "0", "msg": "{} 删除成功".format(job_name)})
 
 
 def get_status(request):
