@@ -19,6 +19,8 @@ TASKS = {}
 logger = logging.getLogger('root')
 
 def build_task(task_obj):
+    # print(dir(task_obj))
+    # print(TASKS)
     task = {}
     task['name'] = task_obj.task_name
     # 0代表未执行

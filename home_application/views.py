@@ -18,6 +18,7 @@ sys.setdefaultencoding('utf-8')
 import datetime
 import jenkins
 import xlrd
+import traceback
 from django.http import JsonResponse
 from django.shortcuts import redirect
 from django.core.paginator import Paginator
@@ -223,6 +224,9 @@ def handle_xlsx(job_xlsx):
                     'is_release': 0,
                     'task_name': node_name
                 }
+                # 如果任务列表里已经存在 则把上一个任务对应的数据库数据改为已完成
+                if TASKS.get(node_name):
+                    BuildHistory.objects.filter(task_name=node_name).update(is_release='1')
                 result = BuildHistory.objects.create(**context)
                 # print(result)
                 # print(result.name)
@@ -324,6 +328,9 @@ def build_job_url(job):
         'is_release': job['is_release'],
         'task_name': job['task_name']
     }
+    # 如果任务列表里已经存在 则把上一个任务对应的数据库数据改为已完成
+    if TASKS.get(job['task_name']):
+        BuildHistory.objects.filter(task_name=job['task_name']).update(is_release='1')
     obj = BuildHistory.objects.create(**context)
     build_task(obj)
 
@@ -345,6 +352,7 @@ def recv(request):
             JOBS = handle_xlsx('job.xlsx')
         except Exception as e:
             logger.error(e)
+            logger.error(traceback.format_exc())
             return JsonResponse({"code": "-1", "msg": u"请上传正确的Excel文件"})
         logger.info(u'{} 解析完毕'.format(job_xlsx))
         print(job_xlsx)
