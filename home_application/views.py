@@ -620,21 +620,21 @@ def empty_job(request):
 #         return JsonResponse({'code': 1, 'errsmg': 'bk_tasks err'})
 
 
-def exec_script(request):
-    from home_application.models import JobInfo
-    from bk_tasks.models import ScriptData
-
-    for obj in JobInfo.objects.all():
-        if obj.tag_name not in gitname_taskid.keys():
-            obj.package_type = 1
-            obj.save()
-
-    for tag_name, jenkins_name in gitname_jobname.items():
-
-        JobInfo.objects.create(**{'tag_name': tag_name, 'jenkins_name': jenkins_name})
-
-    for tag_name, job_info in gitname_taskid.items():
-        for job_id in job_info[1]:
-            ScriptData.objects.filter(script_id=job_id).update(tag_name=tag_name)
-
-    return JsonResponse({'code': 1, 'msg': 'ok'})
+# def exec_script(request):
+#     from home_application.models import JobInfo
+#     from bk_tasks.models import ScriptData
+#
+#     for obj in JobInfo.objects.all():
+#         if obj.tag_name not in gitname_taskid.keys():
+#             obj.package_type = 1
+#             obj.save()
+#
+#     for tag_name, jenkins_name in gitname_jobname.items():
+#
+#         JobInfo.objects.create(**{'tag_name': tag_name, 'jenkins_name': jenkins_name})
+#
+#     for tag_name, job_info in gitname_taskid.items():
+#         for job_id in job_info[1]:
+#             ScriptData.objects.filter(script_id=job_id).update(tag_name=tag_name)
+#
+#     return JsonResponse({'code': 1, 'msg': 'ok'})
