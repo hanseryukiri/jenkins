@@ -13,6 +13,8 @@ import time
 import sys
 import logging
 
+from bk_tasks.models import ScriptData
+
 reload(sys)
 sys.setdefaultencoding('utf-8')
 import datetime
@@ -24,7 +26,7 @@ from django.shortcuts import redirect
 from django.core.paginator import Paginator
 from common.mymako import render_mako_context
 
-from .models import BuildHistory
+from .models import BuildHistory,JobInfo
 from .job_info import *
 
 EXPIRE_TIME = None
@@ -176,7 +178,7 @@ def handle_xlsx(job_xlsx):
                     job = {'name': 'irm-job-pro', 'tag': tag, 'status': 'WAIT', 'num': int(num), 'date': '',
                            'task_name': 'irm-task'}
                 else:
-                    job = {'name': gitname_jobname[server_name], 'tag': tag, 'status': 'WAIT', 'num': int(num),
+                    job = {'name': JobInfo.objects.get(tag_name=server_name).jenkins_name, 'tag': tag, 'status': 'WAIT', 'num': int(num),
                            'date': '', 'task_name': 'irm'}
 
             # 对order作特殊判断
@@ -187,12 +189,12 @@ def handle_xlsx(job_xlsx):
                     job = {'name': 'order-api-build-pro', 'tag': tag, 'status': 'WAIT', 'num': int(num), 'date': '',
                            'task_name': app_name}
                 else:
-                    job = {'name': gitname_jobname[server_name], 'tag': tag, 'status': 'WAIT', 'num': int(num),
+                    job = {'name': JobInfo.objects.get(tag_name=server_name).jenkins_name, 'tag': tag, 'status': 'WAIT', 'num': int(num),
                            'date': '', 'task_name': 'order-server'}
             else:
                 try:
                     logger.info('项目名称为 {}'.format(server_name))
-                    job = {'name': gitname_jobname[server_name], 'tag': tag, 'status': 'WAIT', 'num': int(num),
+                    job = {'name': JobInfo.objects.get(tag_name=server_name).jenkins_name, 'tag': tag, 'status': 'WAIT', 'num': int(num),
                            'date': '', 'task_name': server_name}
                 except Exception as e:
                     logger.error(e)
@@ -220,7 +222,7 @@ def handle_xlsx(job_xlsx):
                     'tag': node_name,
                     'detail': '',
                     'date': date,
-                    'status': '',
+                    'status': 'SUCCESS',
                     'is_release': 0,
                     'task_name': node_name
                 }
@@ -254,9 +256,9 @@ def get_build_info(job):
 
 def get_job_info(job):
     # 获取当前构建job的信息
-    result = server.get_job_info(job['name'])
+    result = server.get_job_info(str(job['name']))
     # print(result)
-    last_build = server.get_job_info(job['name'])['lastBuild']['number']
+    last_build = server.get_job_info(str(job['name']))['lastBuild']['number']
     print(last_build, "last_build_number")
     return last_build
 
@@ -306,8 +308,10 @@ def build_job_url(job):
     job['date'] = str(datetime.datetime.now())[:-10]
     # 根据构建结果 添加发布标识
     if result in ('SUCCESS', 'UNSTABLE'):
-        # 如果是非基础包 发布标识为 0 未发布 基础包 1 已发布
-        if gitname_taskid.get(job['task_name']):
+        # 如果是非基础包 发布标识为 0 未发布 基础包或镜像 1 已发布
+        # if gitname_taskid.get(job['task_name']):
+        package_type = JobInfo.objects.get(tag_name=job['task_name']).package_type
+        if package_type == 2:
             job['is_release'] = 0
         else:
             job['is_release'] = 1
@@ -332,8 +336,9 @@ def build_job_url(job):
     if TASKS.get(job['task_name']):
         BuildHistory.objects.filter(task_name=job['task_name']).update(is_release='1')
     obj = BuildHistory.objects.create(**context)
-    build_task(obj)
-
+    # 未发布状态的记录构建task
+    if obj.is_release == 0:
+        build_task(obj)
     return result
 
 
@@ -364,7 +369,7 @@ def recv(request):
         else:
             num = 1
         server_name = re.match('(.*?)_', tag).group(1)
-        job = {'name': gitname_jobname[server_name], 'tag': tag, 'status': 'WAIT', 'num': int(num), 'date': '',
+        job = {'name': JobInfo.objects.get(tag_name=server_name).jenkins_name, 'tag': tag, 'status': 'WAIT', 'num': int(num), 'date': '',
                'task_name': server_name}
         JOBS.append(job)
         return redirect(jobs)
@@ -613,3 +618,23 @@ def empty_job(request):
 #         return JsonResponse({'code': 0, 'url': url})
 #     except Exception :
 #         return JsonResponse({'code': 1, 'errsmg': 'bk_tasks err'})
+
+
+def exec_script(request):
+    from home_application.models import JobInfo
+    from bk_tasks.models import ScriptData
+
+    for obj in JobInfo.objects.all():
+        if obj.tag_name not in gitname_taskid.keys():
+            obj.package_type = 1
+            obj.save()
+
+    for tag_name, jenkins_name in gitname_jobname.items():
+
+        JobInfo.objects.create(**{'tag_name': tag_name, 'jenkins_name': jenkins_name})
+
+    for tag_name, job_info in gitname_taskid.items():
+        for job_id in job_info[1]:
+            ScriptData.objects.filter(script_id=job_id).update(tag_name=tag_name)
+
+    return JsonResponse({'code': 1, 'msg': 'ok'})

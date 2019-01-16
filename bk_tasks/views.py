@@ -17,8 +17,10 @@ from .models import ReleaseHistory, ScriptData
 #
 TASKS = {}
 logger = logging.getLogger('root')
+missing_msg = ''
 
 def build_task(task_obj):
+
     # print(dir(task_obj))
     # print(TASKS)
     task = {}
@@ -26,21 +28,30 @@ def build_task(task_obj):
     # 0代表未执行
     task['status'] = '0'
     task['date'] = str(task_obj.date)
-    script_list = gitname_taskid.get(task['name'], ['', ''])[1]
-    if script_list:
+    # script_list = gitname_taskid.get(task['name'], ['', ''])[1]
+    script_obj_list = ScriptData.objects.filter(tag_name=task['name'])
+    if script_obj_list:
         scripts = {}
-        for script_id in script_list:
-            scripts[str(script_id)] = {'status': '', 'start_time': '', 'end_time': '', 'detail': ''}
+        for script_obj in script_obj_list:
+            scripts[script_obj.script_id] = {'status': '', 'start_time': '', 'end_time': '', 'detail': ''}
         task['scripts'] = scripts
-        task['app_id'] = gitname_taskid.get(task['name'])[0]
+        # task['app_id'] = gitname_taskid.get(task['name'])[0]
+        task['app_id'] = ScriptData.objects.filter(tag_name=task['name'])[0].app_id
         task['id'] = task_obj.id
         TASKS[task['name']] = task
+    else:
+        global missing_msg
+        if task_obj.task_name and task_obj.task_name not in missing_msg:
+            missing_msg += task_obj.task_name + ', '
+
+
 
 
 from home_application.views import EXPIRE_TIME
 
 
 def tasks(request, page):
+
     # 当超过过期时间 清空发布列表
     if EXPIRE_TIME and int(time.time()) >= EXPIRE_TIME:
         TASKS.clear()
@@ -57,20 +68,9 @@ def tasks(request, page):
         # 当前页码的返回数据集
         task_query = BuildHistory.objects.filter(is_release=0).order_by('date')
         for task_obj in task_query:
-            task = {}
-            task['name'] = task_obj.task_name
-            # 0代表未执行
-            task['status'] = '0'
-            task['date'] = str(task_obj.date)
-            script_list = gitname_taskid.get(task['name'], ['', ''])[1]
-            if script_list:
-                scripts = {}
-                for script_id in script_list:
-                    scripts[str(script_id)] = {'status': '', 'start_time': '', 'end_time': '', 'detail': ''}
-                task['scripts'] = scripts
-                task['app_id'] = gitname_taskid.get(task['name'])[0]
-                task['id'] = task_obj.id
-                TASKS[task['name']] = task
+            build_task(task_obj)
+
+
 
         paginator = Paginator(BuildHistory.objects.filter(is_release=0), one_page_count)
     else:
@@ -96,7 +96,7 @@ def tasks(request, page):
     tasks = task_list[start:end]
     # 按照构建时间排序
     return render_mako_context(request, '/home_application/tasks.html',
-                               {"now_page": page, "tasks": tasks, "pages": pages, 'last_page': paginator.num_pages})
+                               {"now_page": page, "tasks": tasks, "pages": pages, 'last_page': paginator.num_pages, 'missing_msg': missing_msg})
 
 
 def exeTime(func):
@@ -114,28 +114,27 @@ def exeTime(func):
 # 显示作业含有的脚本列表
 @exeTime
 def script(request, task_name):
-    app_id = gitname_taskid.get(task_name, [''])[0]
-    if app_id:
-        script_id_list = gitname_taskid.get(task_name)[1]
-        scripts = []
-        for script in script_id_list:
-            # 先从数据库里取数据
-            try:
-                result = ScriptData.objects.get(script_id=script)
-                name = result.name
-                step = result.step
-                script_id = result.script_id
-                app_id = result.app_id
-                ip = result.ip
-
-            except Exception as e:
+    scripts = []
+    # app_id = gitname_taskid.get(task_name, [''])[0]
+    # app_id = ScriptData.objects.filter(tag_name=task_name)[0].app_id
+    script_obj_list = ScriptData.objects.filter(tag_name=task_name)
+    if script_obj_list:
+        for script_obj in script_obj_list:
+            if script_obj.info_is_update:
+                # 先从数据库里取数据
+                name = script_obj.name
+                step = script_obj.step
+                script_id = script_obj.script_id
+                app_id = script_obj.app_id
+                ip = script_obj.ip
+            else:
                 # 没有再调蓝鲸接口获取信息
                 params = {
                     "app_code": "log",
                     "app_secret": "ac130ba1-27b9-4187-b534-fc6f3101f765",
                     'app_id': 4,
                     "username": "admin",
-                    "task_id": script
+                    "task_id": script_obj.script_id
                 }
                 result = requests.post('http://paas1.shitou.local/api/c/compapi/job/get_task_detail/',
                                        data=json.dumps(params))
@@ -156,13 +155,11 @@ def script(request, task_name):
 
                 # 保存脚本信息到数据库
                 context = {
-                    'script_id': script_id,
                     'step': step,
                     'ip': ip,
                     'name': name,
-                    'app_id': app_id,
                 }
-                ScriptData.objects.create(**context)
+                ScriptData.objects.filter(script_id=script_id).update(**context)
 
             start_time = TASKS[task_name]['scripts'][script_id]['start_time']
             end_time = TASKS[task_name]['scripts'][script_id]['end_time']
@@ -173,7 +170,7 @@ def script(request, task_name):
                  'start_time': start_time, 'end_time': end_time, 'status': status, 'detail': detail})
             scripts = sorted(scripts, key=lambda x: x['step'], reverse=True)
 
-        return render_mako_context(request, '/home_application/script.html', {'scripts': scripts})
+    return render_mako_context(request, '/home_application/script.html', {'scripts': scripts})
 
 
 # 发布
@@ -322,6 +319,8 @@ def history(request, page):
 
 def empty(request):
     TASKS.clear()
+    global missing_msg
+    missing_msg = ''
     return JsonResponse({"code": "0", "msg": "清除成功"})
 
 

@@ -27,14 +27,24 @@ class ReleaseHistory(models.Model):
 
 
 class ScriptData(models.Model):
+    tag_name = models.CharField(max_length=128, verbose_name='TAG名', default='default')
     script_id = models.CharField(max_length=10, verbose_name='脚本id')
-    app_id = models.IntegerField(verbose_name='app_id')
-    name = models.CharField(max_length=128, verbose_name='脚本名')
-    step = models.IntegerField(verbose_name='脚本id')
-    ip = models.CharField(max_length=20, verbose_name='服务器ip')
+    app_id = models.IntegerField(verbose_name='app_id', default=4)
+    name = models.CharField(max_length=128, verbose_name='脚本名', null=True, blank=True)
+    step = models.IntegerField(verbose_name='步数', null=True, blank=True)
+    ip = models.CharField(max_length=20, verbose_name='服务器ip', null=True, blank=True)
 
     class Meta(object):
         db_table = 'script_data'
-        verbose_name = u'脚本信息表'
+        verbose_name = u'蓝鲸脚本信息表 (新增项目需要添加关联的脚本信息)'
         verbose_name = verbose_name
 
+    def __str__(self):
+        return self.name.encode('utf-8')
+
+    @property
+    def info_is_update(self):
+        if self.step:
+            return True
+        else:
+            return False

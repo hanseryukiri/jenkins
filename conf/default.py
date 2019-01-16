@@ -185,7 +185,7 @@ SESSION_COOKIE_PATH = SITE_URL               # NOTE 不要改动，否则，可�
 # Authentication
 # ===============================================================================
 AUTH_USER_MODEL = 'account.BkUser'
-AUTHENTICATION_BACKENDS = ('account.backends.BkBackend', 'django.contrib.auth.backends.ModelBackend')
+# AUTHENTICATION_BACKENDS = ('account.backends.BkBackend', 'django.contrib.auth.backends.ModelBackend')
 LOGIN_URL = "%s/login/?app_id=%s" % (BK_PAAS_HOST, APP_ID)
 LOGOUT_URL = '%saccount/logout/' % SITE_URL
 LOGIN_REDIRECT_URL = SITE_URL

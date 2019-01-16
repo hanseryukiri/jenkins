@@ -34,6 +34,7 @@ gitname_taskid = {
     'PC-NODE': [4, [30, 32, 34]],
     'WX-NODE': [4, [33, 31, 29]],
     'DB-NODE': [4, [136, 132, 137]],
+    'DB-NODE': [4, [136, 132, 137]],
     'p2p-consumer': [4, [5, 6]],
     'test1': [4, [141]],
     'HUISHI-NODE': [4, [144, 145, 146]],
@@ -60,3 +61,92 @@ ip_change = {u'10.117.217.176': u'120.26.77.22', u'10.28.14.125': u'118.178.226.
              u'10.27.236.197': u'116.62.30.245', u'10.51.1.201': u'120.26.92.21', u'10.26.109.219': u'114.55.101.112',
              u'10.117.35.157': u'120.55.186.201', '10.81.83.163': '101.37.255.146', '10.31.52.171': '47.97.244.216',
              }
+
+
+gitname_jobname = {
+    'institution-h5-api': u'institution-h5.api',
+    'irm-task': u'irm-job-pro',
+    'base.user': u'new-shb-product-soa-base.user-parent',
+    'shanghai.schedule': u'new-shb-product-上海银行调度（shanghai.schedule）',
+    'integral-mall': u'integral-mall',
+    'invstone-sys': u'new-product-贷呗后台',
+    'integral-bms': u'integral-bms',
+    'channel-consumer': u'new-product-渠道mq消费端',
+    'trade.basic.api': u'new-shb-product-trade.basic.api2',
+    'credit.collect': u'credit-collect',
+    'shitou.rule': u'shitou.rule',
+    'shitou.transaction': u'new-product-shitou.transaction',
+    'p2p-consumer': u'new-product-p2p-consumer',
+    'shitou.market.api': u'shitou.market.api',
+    'gateway': u'new-shb-product-soa-gateway-parent',
+    'urule-server': u'urule-server',
+    'shitou.market': u'shitou.market',
+    'invstone-bms': u'new-product-p2p-bms',
+    'message-service': u'irm-message-service-pro',
+    'invstone-seo-cms': u'new-product-invstone-seo-cms',
+    'merchants-server': u'mertchants-server',
+    'huishi-api': u'huishi_api',
+    'bms.sysoperations': u'p2p-bms-sysoperations',
+    'irm': u'irm-product',
+    'base.sys': u'new-shb-product-soa-base.sys-parent',
+    'institution-service': u'institution-service',
+    'shitou-credit-bms': u'credit-bms',
+    'institution-api': u'institution-api',
+    'invstone-ask': u'invstone-ask',
+    'invstone-channel': u'pro-bms-channel',
+    'institution-bms-v2': u'institution-bms',
+    'institution-bms': u'institution-bms',
+    'invstone-dbei-businessapi': u'dbei-businessapi',
+    'invstone-seo': u'new-product-invstone-seo',
+    'integral-market': u'integral-market',
+    'quartz': u'new-product-job',
+    'payment-server': u'payment-server-pro',
+    'base.product': u'new-shb-product-soa-base.product-parent',
+    'invstone-rpc': u'new-product-贷呗微信',
+    'wechat.pay': u'new-product-微信支付（wechat.pay）',
+    'base.market': u'new-shb-product-soa-base.market-parent',
+    'ufida-server': u'ufida-server-PRO',
+    'order-server': u'order-server-PRO',
+    'business.transaction': u'new-shb-product-上海银行业务交易(business.transaction)',
+    'sso': u'irm-ssoweb-pro',
+    'integral-site': u'integral-site',
+    'fund.transaction': u'new-shb-product-上海银行资金交易（fund.transaction）',
+    'bms.rule': u'bms.rule.engine',
+    'gateway.transaction': u'new-shb-product-soa-gateway.transaction-parent',
+    'wx.api': u'new-shb-product-app.wxserver',
+    'flow-server': u'flow-server',
+    'dbei.webserver-1.0': u'new-shb-product-dbei-webserver',
+    'sso-server': u'sso-server',
+    'app.api': u'new-shb-product-app.appserver',
+    'invstone-bms-business': u'invstone-bms-business',
+    'base.transaction': u'new-shb-product-soa-base.transaction-parent',
+    'institution.schedule': u'institution.schedule',
+    'agw': u'irm-agw-pro',
+    'callback.transaction': u'new-shb-product-上海银行交易回盘(callback.transaction)',
+    'web.api': u'new-shb-product-app.webserver',
+    'huishi-server': u'huishi-server',
+    'prepare.schedule': u'prepare.schedule',
+    'huishi-schedule': u'huishi-schedule',
+
+}
+
+# import pymysql
+#
+# conn = pymysql.connect(host="192.168.33.10", user="root", passwd="mysql",db="packing", port=3306)
+#
+# with conn.cursor() as cursor:
+#     base_sql = 'INSERT INTO job_info (tag_name, jenkins_name) VALUES ("{}","{}");'
+#     for tag_name, jenkins_name in gitname_jobname.items():
+#         sql = base_sql.format(tag_name,jenkins_name)
+#         cursor.execute(sql)
+#         conn.commit()
+#     for tag_name, job_info in gitname_taskid.items():
+#         for job_id in job_info[1]:
+#             sql = 'update script_data set tag_name="{}" where script_id="{}";'.format(tag_name, job_id)
+#             cursor.execute(sql)
+#             conn.commit()
+
+# for tag_name, job_info in gitname_taskid.items():
+#     for job_id in job_info[1]:
+#         sql = 'update script_data set tag_name="{}" where script_id="{}";'.format(tag_name, job_id)
+#         print(sql)
