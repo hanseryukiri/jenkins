@@ -368,6 +368,7 @@ def recv(request):
             num = JOBS[-1]['num'] + 1
         else:
             num = 1
+        tag = tag.replace('&nbsp;', '')
         server_name = re.match('(.*?)_', tag).group(1)
         job = {'name': JobInfo.objects.get(tag_name=server_name).jenkins_name, 'tag': tag, 'status': 'WAIT', 'num': int(num), 'date': '',
                'task_name': server_name}
