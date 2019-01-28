@@ -9,9 +9,12 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 See the License for the specific language governing permissions and limitations under the License.
 """
 import re
+import requests
 import time
 import sys
 import logging
+
+from bs4 import BeautifulSoup
 
 from bk_tasks.models import ScriptData
 
@@ -30,7 +33,7 @@ from .models import BuildHistory,JobInfo
 from .job_info import *
 
 EXPIRE_TIME = None
-from bk_tasks.views import TASKS, build_task
+from bk_tasks.views import TASKS, build_task, missing_set
 
 
 logger = logging.getLogger('root')
@@ -133,7 +136,119 @@ JENKINS_URL = 'http://18.16.200.105:8080/jenkins/'
 server = jenkins.Jenkins(JENKINS_URL, username=USER_ID, password=API_TOKEN)
 
 
-# institution-h5.api
+
+def login():
+    url = 'http://18.16.200.44:8090/dologin.action'
+    data = {
+        'os_username': 'yanchuanhui',
+        'os_password': 'a123456',
+    }
+    resp = requests.post(url, data=data)
+    return resp.cookies
+
+def get_html(pageId):
+    cookies = login()
+    url = 'http://18.16.200.44:8090/pages/viewpage.action'
+    data = {
+        'pageId': pageId,
+    }
+    resp = requests.post(url, data=data, cookies=cookies)
+    return resp.text
+
+def handle_with_wiki(pageId):
+    soup = BeautifulSoup(get_html(pageId), 'lxml')
+    # 获取后端发布的表格元素
+    result = soup.find("span", string="后端发布").parent.next_sibling.next_sibling
+    # 获取后端发布的trs
+    trs = result.find_all('tr')[1:]
+    gitname_tag_list = []
+    jobs = []
+    num = 0
+    for tr in trs:
+        tds = tr.find_all('td')
+        if tds[3].string.strip():
+            # print(tds[3].string.strip())
+            tag = tds[3].string.strip()
+            # num = table.cell(x, y + 5).value
+            num += 1
+            # print(tag)
+            server_name = str(re.match('(.*?)_', tag).group(1))
+            # 对master作特殊判断
+            if tag == 'master':
+                app_name = tds[0].string.strip()
+                if app_name == 'ecd-api':
+                    job = {'name': 'irm-ecd-api', 'tag': tag, 'status': 'WAIT', 'num': int(num), 'date': ''}
+                elif app_name == 'ecd-server':
+                    job = {'name': 'irm-ecd', 'tag': tag, 'status': 'WAIT', 'num': int(num), 'date': '', }
+                elif app_name == 'agw':
+                    job = {'name': 'irm-agw-pro', 'tag': tag, 'status': 'WAIT', 'num': int(num), 'date': '',
+                           }
+                job['task_name'] = app_name
+            # 对irm作特殊判断
+            elif server_name == 'irm':
+                app_name = tds[0].string.strip()
+                print(app_name)
+                # 如果是irm-task
+                if 'task' in app_name:
+                    job = {'name': 'irm-job-pro', 'tag': tag, 'status': 'WAIT', 'num': int(num), 'date': '',
+                           'task_name': 'irm-task'}
+                else:
+                    job = {'name': JobInfo.objects.get(tag_name=server_name).jenkins_name, 'tag': tag, 'status': 'WAIT', 'num': int(num),
+                           'date': '', 'task_name': 'irm'}
+
+            # 对order作特殊判断
+            elif server_name == 'order-server':
+                app_name = tds[0].string.strip()
+                # 如果是order-api
+                if 'api' in app_name:
+                    job = {'name': 'order-api-build-pro', 'tag': tag, 'status': 'WAIT', 'num': int(num), 'date': '',
+                           'task_name': app_name}
+                else:
+                    job = {'name': JobInfo.objects.get(tag_name=server_name).jenkins_name, 'tag': tag, 'status': 'WAIT', 'num': int(num),
+                           'date': '', 'task_name': 'order-server'}
+            else:
+                try:
+                    logger.info('项目名称为 {}'.format(server_name))
+                    job = {'name': JobInfo.objects.get(tag_name=server_name).jenkins_name, 'tag': tag, 'status': 'WAIT', 'num': int(num),
+                           'date': '', 'task_name': server_name}
+                except Exception as e:
+                    logger.error(e)
+                    logger.error('{} 未配置到解析字典'.format(server_name))
+            jobs.append(job)
+
+    # 前端发布
+    # 获取前端发布的表格元素
+    result = soup.find("span", string="后端发布").parent.next_sibling.next_sibling
+    # 获取后端发布的trs
+    trs = result.find_all('tr')[1:]
+    for tr in trs:
+        tds = tr.find_all('td')
+        if tds[3].string.strip():
+            date = '2222/12/31/00/00/00'
+            date = datetime.datetime.strptime(date, '%Y/%m/%d/%M/%H/%S')
+            node_name = tds[0].string.strip()
+            node_name = re.sub('\s', '-', node_name)
+            # task_name = re.match('(.*?)_', node_name).group(1)
+            context = {
+                'num': 1,
+                'name': node_name,
+                'tag': node_name,
+                'detail': '',
+                'date': date,
+                'status': 'SUCCESS',
+                'is_release': 0,
+                'task_name': node_name
+            }
+            # 如果任务列表里已经存在 则把上一个任务对应的数据库数据改为已完成
+            if TASKS.get(node_name) or node_name in missing_set:
+                BuildHistory.objects.filter(task_name=node_name).update(is_release='1')
+            result = BuildHistory.objects.create(**context)
+            # print(result)
+            # print(result.name)
+            build_task(result)
+
+    return jobs
+
 
 
 def handle_xlsx(job_xlsx):
@@ -227,7 +342,7 @@ def handle_xlsx(job_xlsx):
                     'task_name': node_name
                 }
                 # 如果任务列表里已经存在 则把上一个任务对应的数据库数据改为已完成
-                if TASKS.get(node_name):
+                if TASKS.get(node_name) or node_name in missing_set:
                     BuildHistory.objects.filter(task_name=node_name).update(is_release='1')
                 result = BuildHistory.objects.create(**context)
                 # print(result)
@@ -344,7 +459,7 @@ def build_job_url(job):
 
 def recv(request):
     tag = request.POST.get('job_tag')
-    print(tag)
+    pageid = request.POST.get('pageid')
     job_xlsx = request.FILES.get('job_xlsx')
     # 如果获取到xlsx文件
     if job_xlsx:
@@ -361,7 +476,7 @@ def recv(request):
             return JsonResponse({"code": "-1", "msg": u"请上传正确的Excel文件"})
         logger.info(u'{} 解析完毕'.format(job_xlsx))
         print(job_xlsx)
-        return redirect(jobs)
+        # return redirect(jobs)
     # 如果获取到的是tag号
     elif tag:
         if JOBS:
@@ -373,22 +488,36 @@ def recv(request):
         job = {'name': JobInfo.objects.get(tag_name=server_name).jenkins_name, 'tag': tag, 'status': 'WAIT', 'num': int(num), 'date': '',
                'task_name': server_name}
         JOBS.append(job)
-        return redirect(jobs)
-    else:
-        return redirect(jobs)
+        # return redirect(jobs)
+    elif pageid:
+        # xlsx 处理转换成job信息
+        try:
+            # global JOBS
+            JOBS = handle_with_wiki(pageid)
+        except Exception as e:
+            logger.error(e)
+            logger.error(traceback.format_exc())
+            print(traceback.format_exc())
+            return JsonResponse({"code": "-1", "msg": u"wiki信息解析失败"})
+        logger.info(u'{} 解析完毕'.format(pageid))
+        print(pageid)
+
+    return redirect(jobs)
+
+
+
 
 
 def index(request):
-    if JOBS:
-        return redirect(jobs)
-    return render_mako_context(request, '/home_application/base.html')
+
+    return redirect(jobs)
+    # return render_mako_context(request, '/home_application/base.html')
 
 
 def jobs(request):
     # print(JOBS)
-    if not JOBS:
-        return redirect(index)
-
+    # if not JOBS:
+    #     return redirect(index)
     return render_mako_context(request, '/home_application/packing.html', {'jobs': JOBS})
 
 

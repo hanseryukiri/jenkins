@@ -17,7 +17,7 @@ from .models import ReleaseHistory, ScriptData
 #
 TASKS = {}
 logger = logging.getLogger('root')
-missing_msg = ''
+missing_set = set()
 
 def build_task(task_obj):
 
@@ -31,6 +31,8 @@ def build_task(task_obj):
     # script_list = gitname_taskid.get(task['name'], ['', ''])[1]
     script_obj_list = ScriptData.objects.filter(tag_name=task['name'])
     if script_obj_list:
+        if str(task_obj.task_name) in missing_set:
+            missing_set.remove(str(task_obj.task_name))
         scripts = {}
         for script_obj in script_obj_list:
             scripts[script_obj.script_id] = {'status': '', 'start_time': '', 'end_time': '', 'detail': ''}
@@ -40,9 +42,10 @@ def build_task(task_obj):
         task['id'] = task_obj.id
         TASKS[task['name']] = task
     else:
-        global missing_msg
-        if task_obj.task_name and task_obj.task_name not in missing_msg:
-            missing_msg += task_obj.task_name + ', '
+        missing_set.add(str(task_obj.task_name))
+        #
+        # if task_obj.task_name and task_obj.task_name not in missing_set:
+        #     missing_set += task_obj.task_name + ', '
 
 
 
@@ -96,7 +99,7 @@ def tasks(request, page):
     tasks = task_list[start:end]
     # 按照构建时间排序
     return render_mako_context(request, '/home_application/tasks.html',
-                               {"now_page": page, "tasks": tasks, "pages": pages, 'last_page': paginator.num_pages, 'missing_msg': missing_msg})
+                               {"now_page": page, "tasks": tasks, "pages": pages, 'last_page': paginator.num_pages, 'missing_set': list(missing_set)})
 
 
 def exeTime(func):
@@ -319,8 +322,8 @@ def history(request, page):
 
 def empty(request):
     TASKS.clear()
-    global missing_msg
-    missing_msg = ''
+    global missing_set
+    missing_set = set()
     return JsonResponse({"code": "0", "msg": "清除成功"})
 
 

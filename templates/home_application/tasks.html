@@ -243,16 +243,22 @@
 
      //普通对话框
     $().ready(function() {
-        var content = '${ missing_msg }';
+        var arr = ${ missing_set };
+        var text = ''
+        let index;
+        for(index in arr) {
+            console.log("arr[" + index + "] = " + arr[index]);
+            text += arr[index] + ', ';
+        }
 
-        if (content ==""){
+        if (arr.length == 0){
             console.log('全部项目都解析完毕')
         }else {
             var d = dialog({
             width: 260,
             title: '错误',
             quickClose: true,
-            content: '${ missing_msg } 蓝鲸脚本信息未配置 前往/admin 进行配置',
+            content: text + '蓝鲸脚本信息未配置 前往/admin 进行配置',
             ok: function() {
                 console.log(this)
                 // do something
