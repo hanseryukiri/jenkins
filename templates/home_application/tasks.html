@@ -216,9 +216,13 @@
     }
 
     function empty() {
-        $.get('/bk_tasks/empty', function () {
-            location.reload()
-        })
+        if(confirm("确定删除数据")) {
+            $.get('/bk_tasks/empty', function () {
+                location.reload()
+            })
+        }else{
+
+        }
     }
 
     function checkout() {

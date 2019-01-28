@@ -171,18 +171,18 @@
     function del(th) {
         var job_name = $(th).parent('td').siblings().eq(1).text();
         var job_index = $(th).parent('td').parent('tr').index();
-        $.post('/package/del', {"job_name": job_name,'job_index': job_index}, function (data) {
-            if (data.code == '0'){
-                // 删除成功
-                if(confirm("确定删除数据")){
+        if(confirm("确定删除数据")){
+            $.post('/package/del', {"job_name": job_name,'job_index': job_index}, function (data) {
+                if (data.code == '0'){
+                    // 删除成功
                     $(th).parents('tr').eq(0).remove()
                     alert(data.msg)
 
-                }else{
-
                 }
-            }
-        })
+            })
+        }else{
+
+        }
     }
 
 
