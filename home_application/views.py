@@ -161,6 +161,7 @@ def handle_with_wiki(pageId):
     result = soup.find("span", string="后端发布").parent.next_sibling.next_sibling
     # 获取后端发布的trs
     trs = result.find_all('tr')[1:]
+    print(trs)
     gitname_tag_list = []
     jobs = []
     num = 0
@@ -218,7 +219,7 @@ def handle_with_wiki(pageId):
 
     # 前端发布
     # 获取前端发布的表格元素
-    result = soup.find("span", string="后端发布").parent.next_sibling.next_sibling
+    result = soup.find("span", string="前端发布").parent.next_sibling.next_sibling
     # 获取后端发布的trs
     trs = result.find_all('tr')[1:]
     for tr in trs:
@@ -227,7 +228,7 @@ def handle_with_wiki(pageId):
             date = '2222/12/31/00/00/00'
             date = datetime.datetime.strptime(date, '%Y/%m/%d/%M/%H/%S')
             node_name = tds[0].string.strip()
-            node_name = re.sub('\s', '-', node_name)
+            node_name = re.sub('\s', '-', node_name).upper()
             # task_name = re.match('(.*?)_', node_name).group(1)
             context = {
                 'num': 1,
