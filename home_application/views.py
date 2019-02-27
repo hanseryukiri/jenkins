@@ -161,7 +161,7 @@ def handle_with_wiki(pageId):
     result = soup.find("span", string="后端发布").parent.next_sibling.next_sibling
     # 获取后端发布的trs
     trs = result.find_all('tr')[1:]
-    print(trs)
+    # print(trs)
     gitname_tag_list = []
     jobs = []
     num = 0
